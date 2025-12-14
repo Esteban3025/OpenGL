@@ -32,7 +32,10 @@
     <ClInclude Include="OpenGL\includes\glad\glad.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="TestGLFW\SHADER_H.H">
+    <ClInclude Include="OpenGL\includes\shaders\SHADER.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="OpenGL\includes\stb_image.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
   </ItemGroup>
@@ -43,8 +46,13 @@
     <Image Include="textures\container.jpg">
       <Filter>Archivos de recursos</Filter>
     </Image>
+    <Image Include="textures\wall.jpg">
+      <Filter>Archivos de recursos</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />
+    <None Include="shader.fs" />
+    <None Include="shader.vs" />
   </ItemGroup>
 </Project>

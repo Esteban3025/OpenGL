@@ -1,23 +1,22 @@
 #ifndef SHADER_H
 #define SHADER_H
 
-#include <glad/glad.h> // include glad to get all the required OpenGL headers
+#include <glad/glad.h>
 
 #include <string>
 #include <fstream>
 #include <sstream>
 #include <iostream>
 
-
 class Shader
 {
 public:
-    // the program ID
     unsigned int ID;
-
-    // constructor reads and builds the shader
+    // constructor generates the shader on the fly
+    // ------------------------------------------------------------------------
     Shader(const char* vertexPath, const char* fragmentPath)
     {
+        // 1. retrieve the vertex/fragment source code from filePath
         std::string vertexCode;
         std::string fragmentCode;
         std::ifstream vShaderFile;
@@ -27,6 +26,7 @@ public:
         fShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
         try
         {
+            std::cout << vertexPath << fragmentPath << "\n";
             // open files
             vShaderFile.open(vertexPath);
             fShaderFile.open(fragmentPath);
@@ -40,6 +40,7 @@ public:
             // convert stream into string
             vertexCode = vShaderStream.str();
             fragmentCode = fShaderStream.str();
+            
         }
         catch (std::ifstream::failure& e)
         {
@@ -69,27 +70,32 @@ public:
         glDeleteShader(vertex);
         glDeleteShader(fragment);
     }
-    // use/activate the shader
+    // activate the shader
+    // ------------------------------------------------------------------------
     void use()
     {
         glUseProgram(ID);
     }
     // utility uniform functions
+    // ------------------------------------------------------------------------
     void setBool(const std::string& name, bool value) const
     {
-        glUniform1i(glGetUniformLocation(ID, name.c_str()), value);
+        glUniform1i(glGetUniformLocation(ID, name.c_str()), (int)value);
     }
+    // ------------------------------------------------------------------------
     void setInt(const std::string& name, int value) const
     {
         glUniform1i(glGetUniformLocation(ID, name.c_str()), value);
     }
+    // ------------------------------------------------------------------------
     void setFloat(const std::string& name, float value) const
     {
-        glUniform1i(glGetUniformLocation(ID, name.c_str()), value);
-        /*std::cout << name << std::endl;
-        std::cout << value << std::endl;*/
+        glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
     }
+
 private:
+    // utility function for checking shader compilation/linking errors.
+    // ------------------------------------------------------------------------
     void checkCompileErrors(unsigned int shader, std::string type)
     {
         int success;
@@ -114,5 +120,4 @@ private:
         }
     }
 };
-
 #endif

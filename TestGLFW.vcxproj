@@ -142,16 +142,20 @@
     <ClInclude Include="OpenGL\includes\glad\glad.h" />
     <ClInclude Include="OpenGL\includes\GLFW\glfw3.h" />
     <ClInclude Include="OpenGL\includes\GLFW\glfw3native.h" />
-    <ClInclude Include="TestGLFW\SHADER_H.H" />
+    <ClInclude Include="OpenGL\includes\shaders\SHADER.h" />
+    <ClInclude Include="OpenGL\includes\stb_image.h" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="OpenGL\lib\glfw3.lib" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="textures\container.jpg" />
+    <Image Include="textures\wall.jpg" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />
+    <None Include="shader.fs" />
+    <None Include="shader.vs" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
