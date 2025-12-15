@@ -49,6 +49,9 @@
     <Image Include="textures\wall.jpg">
       <Filter>Archivos de recursos</Filter>
     </Image>
+    <Image Include="textures\awesomeface.png">
+      <Filter>Archivos de recursos</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />

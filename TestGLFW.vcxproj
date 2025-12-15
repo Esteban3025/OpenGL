@@ -149,6 +149,7 @@
     <Library Include="OpenGL\lib\glfw3.lib" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="textures\awesomeface.png" />
     <Image Include="textures\container.jpg" />
     <Image Include="textures\wall.jpg" />
   </ItemGroup>
