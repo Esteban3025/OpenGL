@@ -139,6 +139,7 @@
     <ClCompile Include="OpenGL\lib\glad.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="OpenGL\includes\CAMERA.h" />
     <ClInclude Include="OpenGL\includes\glad\glad.h" />
     <ClInclude Include="OpenGL\includes\GLFW\glfw3.h" />
     <ClInclude Include="OpenGL\includes\GLFW\glfw3native.h" />
@@ -152,6 +153,7 @@
     <Image Include="textures\awesomeface.png" />
     <Image Include="textures\container.jpg" />
     <Image Include="textures\wall.jpg" />
+    <Image Include="textures\wing.png" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />
