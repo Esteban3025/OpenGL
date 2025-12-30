@@ -17,11 +17,12 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow* window);
 
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
+const unsigned int SCR_WIDTH = 1920;
+const unsigned int SCR_HEIGHT = 1080;
 
 
-float mixNum = 0.5;
+float mixNum = 0.0;
+float planeSize = 40.0f;
 
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 
@@ -63,6 +64,13 @@ int main()
         return -1;
     }
 
+    GLFWmonitor* primary_monitor = glfwGetPrimaryMonitor();
+    const GLFWvidmode* mode = glfwGetVideoMode(primary_monitor);
+    int monitorWidth = mode->width;
+    int monitorHeight = mode->height;
+    std::cout << "Primary monitor width: " << monitorWidth << " pixels" << std::endl;
+    std::cout << "Primary monitor height: " << monitorHeight << " pixels" << std::endl;
+
 
     Shader ourShader("shader.vs", "shader.fs");
 
@@ -71,7 +79,7 @@ int main()
      0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
      0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
      0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
     -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
 
     -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
@@ -110,16 +118,56 @@ int main()
     -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
     };
 
+    glm::vec3 Positions[] = {
+        glm::vec3(5.0f, 5.0f, -0.3f),
+        glm::vec3(5.0f, 3.0f, -0.5f),
+        glm::vec3(-5.0f, 3.0f, -0.3f),
+        glm::vec3(5.0f, 5.0f, -0.5f),
+        glm::vec3(3.0f, 3.0f, -0.7f),
+        glm::vec3(1.0f, 12.0f, -0.5f),
+        glm::vec3(3.0f, 8.0f,  0.0f),
+        glm::vec3(-8.0f, 3.0f, -0.10f),
+        glm::vec3(1.0f, 5.3f, -0.3f),
+        glm::vec3(-5.1f, 5.5f, -0.3f),
+    };
 
+    float planeVertices[] = {
+        // positions          // texture coords
+         0.9f,  0.9f, 0.0f,   1.0f, 1.0f, // top right
+         0.9f, -0.9f, 0.0f,   1.0f, 0.0f, // bottom right
+        -0.9f, -0.9f, 0.0f,   0.0f, 0.0f, // bottom left
+        -0.9f,  0.9f, 0.0f,   0.0f, 1.0f  // top left 
+    };
 
-    unsigned int VBO, VAO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
+    unsigned int indices[] = {
+        0, 1, 3, // first triangle
+        1, 2, 3  // second triangle
+    };
+
+    unsigned int VBOs[2], VAOs[2], EBO;
+    glGenVertexArrays(2, VAOs);
+    glGenBuffers(2, VBOs);
+    glGenBuffers(1, &EBO);
     // bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
-    glBindVertexArray(VAO);
+    glBindVertexArray(VAOs[0]);
 
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBOs[0]);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    // position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    // texture attribute
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    // plane things
+    glBindVertexArray(VAOs[1]);
+    glBindBuffer(GL_ARRAY_BUFFER, VBOs[1]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
     // position attribute
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
@@ -128,6 +176,7 @@ int main()
     // texture attribute
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+    
 
     // note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -201,7 +250,7 @@ int main()
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
 
-        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glActiveTexture(GL_TEXTURE0);
@@ -211,20 +260,34 @@ int main()
     
         ourShader.use();
         
-        glBindVertexArray(VAO);
         glm::mat4 projection;
-        projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 
         glm::mat4 view = camera.GetViewMatrix();
+
+        glBindVertexArray(VAOs[1]);
+
+
+        glm::mat4 planeModel = glm::mat4(1.0f);
+        planeModel = glm::translate(planeModel, glm::vec3(0.0f, -3.0f, 0.0f));
+        planeModel = glm::rotate(planeModel, glm::radians(-90.0f), glm::vec3(5.0f, 0.0f, 0.0f));
+        planeModel = glm::scale(planeModel, glm::vec3(planeSize, planeSize, planeSize));
+        ourShader.setMat4("model", planeModel);
+
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+
+        glBindVertexArray(VAOs[0]);
+        for (int i = 0; i < 10; i++)
+        {
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::translate(model, Positions[i]);
+            model = glm::rotate(model, glm::radians(5.0f), glm::vec3(-5.0f, 0.0f, 0.0f));
+            ourShader.setMat4("model", model);
+
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
         
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, -0.3f));    
-        model = glm::rotate(model, glm::radians(20.0f), glm::vec3(1.0f, 0.3f, 0.5f));
-        ourShader.setMat4("model", model);
-
-
-        glDrawArrays(GL_TRIANGLES, 0, 36);
-  
         ourShader.setMat4("view", view);
         ourShader.setMat4("projection", projection);
 
@@ -237,8 +300,8 @@ int main()
         glfwPollEvents();
     }
 
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
+    glDeleteVertexArrays(2, VAOs);
+    glDeleteBuffers(2, VBOs);
 
     glfwTerminate();
     return 0;
@@ -263,6 +326,10 @@ void processInput(GLFWwindow* window)
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
     {
         camera.ProcessKeyboard(RIGHT, deltaTime);
+    }
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+    {
+        camera.ProcessKeyboard(RUN, deltaTime);
     }
 
 
