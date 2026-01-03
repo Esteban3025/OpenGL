@@ -2,6 +2,7 @@
 #include <GLFW/glfw3.h>
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
+#include <cmath>
 
 #include <shaders/SHADER.h>
 #include <CAMERA.h>
@@ -23,9 +24,9 @@ const unsigned int SCR_HEIGHT = 1080;
 
 float mixNum = 0.0;
 float planeSize = 40.0f;
+float flagSize = 3.0f;
 
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
-
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
@@ -33,6 +34,8 @@ float lastFrame = 0.0f;
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_WIDTH / 2.0f;
 
+glm::vec3 cameraPosition = camera.getPosition();
+glm::vec3 lastCamPosition = glm::vec3(0.0f, 0.0f, 3.0f);
 
 bool fistMouse = true;
 
@@ -73,6 +76,7 @@ int main()
 
 
     Shader ourShader("shader.vs", "shader.fs");
+   
 
     float vertices[] = {
     -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
@@ -119,16 +123,11 @@ int main()
     };
 
     glm::vec3 Positions[] = {
-        glm::vec3(5.0f, 5.0f, -0.3f),
-        glm::vec3(5.0f, 3.0f, -0.5f),
-        glm::vec3(-5.0f, 3.0f, -0.3f),
-        glm::vec3(5.0f, 5.0f, -0.5f),
-        glm::vec3(3.0f, 3.0f, -0.7f),
-        glm::vec3(1.0f, 12.0f, -0.5f),
-        glm::vec3(3.0f, 8.0f,  0.0f),
-        glm::vec3(-8.0f, 3.0f, -0.10f),
-        glm::vec3(1.0f, 5.3f, -0.3f),
-        glm::vec3(-5.1f, 5.5f, -0.3f),
+        glm::vec3(5.0f, 5.0f, -0.0f),
+        glm::vec3(0.0f, 5.0f, -0.0f),
+        glm::vec3(9.0f, 5.0f, -0.0f),
+        glm::vec3(-9.0f, 5.0f, -0.0f),
+        glm::vec3(-5.0f, 4.5f, -0.3f),
     };
 
     float planeVertices[] = {
@@ -144,26 +143,27 @@ int main()
         1, 2, 3  // second triangle
     };
 
-    unsigned int VBOs[2], VAOs[2], EBO;
-    glGenVertexArrays(2, VAOs);
-    glGenBuffers(2, VBOs);
-    glGenBuffers(1, &EBO);
+    float flagVertices[] = {
+        // positions     
+        0.5f, -0.5f, 0.0f, 
+       -0.5f, -0.5f, 0.0f,
+        0.0f,  0.5f, 0.0f,  
+    };
+
     // bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
-    glBindVertexArray(VAOs[0]);
 
-    glBindBuffer(GL_ARRAY_BUFFER, VBOs[0]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
+    unsigned int VBOs[3], VAOs[3], EBO;
+    glGenVertexArrays(3, VAOs);
+    glGenBuffers(3, VBOs);
+    glGenBuffers(1, &EBO);
 
-    // texture attribute
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
+    // position attribute example
+   // glVertexAttribPointer(index in the shader, vertices size, GL_FLOAT(data type), GL_FALSE(if normalized int for example), 
+   // 3 * sizeof(float() this is the stride, (void*)0) this is a offset;
 
     // plane things
-    glBindVertexArray(VAOs[1]);
-    glBindBuffer(GL_ARRAY_BUFFER, VBOs[1]);
+    glBindVertexArray(VAOs[0]);
+    glBindBuffer(GL_ARRAY_BUFFER, VBOs[0]);
     glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
@@ -176,6 +176,31 @@ int main()
     // texture attribute
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+   
+    // cubes things 
+    glBindVertexArray(VAOs[1]);
+    glBindBuffer(GL_ARRAY_BUFFER, VBOs[1]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    // position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    // texture attribute
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    // flag things
+    glBindVertexArray(VAOs[2]);
+    glBindBuffer(GL_ARRAY_BUFFER, VBOs[2]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(flagVertices), flagVertices, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
     
 
     // note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
@@ -196,7 +221,7 @@ int main()
     int width, height, nrChannels;
     stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis.
     // The FileSystem::getPath(...) is part of the GitHub repository so we can find files on any IDE/platform; replace it with your own image path.
-    unsigned char* data = stbi_load("textures/container.jpg", &width, &height, &nrChannels, 0);
+    unsigned char* data = stbi_load("textures/wall.jpg", &width, &height, &nrChannels, 0);
     if (data)
     {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
@@ -209,7 +234,7 @@ int main()
     stbi_image_free(data);
     // texture 2
     // ---------
-    glGenTextures(1, &texture2);
+    glGenTextures(2, &texture2);
     glBindTexture(GL_TEXTURE_2D, texture2);
     // set the texture wrapping parameters
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
@@ -259,41 +284,64 @@ int main()
         glBindTexture(GL_TEXTURE_2D, texture2);
     
         ourShader.use();
+
+        glBindVertexArray(VAOs[0]);
+        glm::mat4 planeModel = glm::mat4(1.0f);
+        planeModel = glm::translate(planeModel, glm::vec3(0.0f, -3.0f, 0.0f));
+        planeModel = glm::rotate(planeModel, glm::radians(-90.0f), glm::vec3(5.0f, 0.0f, 0.0f));
+        planeModel = glm::scale(planeModel, glm::vec3(planeSize, planeSize, planeSize));
+        ourShader.setMat4("model", planeModel);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         
         glm::mat4 projection;
         projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 
         glm::mat4 view = camera.GetViewMatrix();
 
+        glm::vec3 currentCamPosition = camera.getPosition();
+
+        if (currentCamPosition != lastCamPosition)
+        {
+            /*std::cout << "Camera Position" << std::endl;
+            std::cout << "x: " << cameraPosition.x << " " << "y: " << cameraPosition.y << " " << "z: " << cameraPosition.z << std::endl;
+            std::cout << "Last Camera Position" << std::endl;
+            std::cout << "x: " << std::round(lastCamPosition.x) << " " << "y: " << std::round(lastCamPosition.y) << " " << "z: " << std::round(lastCamPosition.z) << std::endl;*/
+
+            lastCamPosition = currentCamPosition;
+        }
+
         glBindVertexArray(VAOs[1]);
-
-
-        glm::mat4 planeModel = glm::mat4(1.0f);
-        planeModel = glm::translate(planeModel, glm::vec3(0.0f, -3.0f, 0.0f));
-        planeModel = glm::rotate(planeModel, glm::radians(-90.0f), glm::vec3(5.0f, 0.0f, 0.0f));
-        planeModel = glm::scale(planeModel, glm::vec3(planeSize, planeSize, planeSize));
-        ourShader.setMat4("model", planeModel);
-
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-
-
-        glBindVertexArray(VAOs[0]);
-        for (int i = 0; i < 10; i++)
+        for (int i = 0; i < std::size(Positions); i++)
         {
             glm::mat4 model = glm::mat4(1.0f);
             model = glm::translate(model, Positions[i]);
-            model = glm::rotate(model, glm::radians(5.0f), glm::vec3(-5.0f, 0.0f, 0.0f));
+
+
+            if (std::round(lastCamPosition.z) >= 17 && std::round(lastCamPosition.z) <= 30 && std::round(lastCamPosition.x) >= 17 && std::round(lastCamPosition.x) <= 30)
+            {
+                model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(-5.0f, 0.0f, 0.0f));
+            }
+            else {
+                model = glm::rotate(model, glm::radians(20.0f), glm::vec3(-5.0f, 0.0f, 0.0f));
+            }
+            
             ourShader.setMat4("model", model);
 
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }
-        
+
+        glBindVertexArray(VAOs[2]);
+
+        glm::mat4 flagModel = glm::mat4(1.0f);
+        flagModel = glm::translate(flagModel, glm::vec3(17.0f, 0.0f, 30.0f));
+        flagModel = glm::scale(flagModel, glm::vec3(flagSize, flagSize, flagSize));
+        ourShader.setMat4("model", flagModel);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+       
         ourShader.setMat4("view", view);
         ourShader.setMat4("projection", projection);
 
         ourShader.setFloat("mixNum", mixNum);
-        glBindVertexArray(0);
-
 
         lastFrame = currentFrame;
         glfwSwapBuffers(window);

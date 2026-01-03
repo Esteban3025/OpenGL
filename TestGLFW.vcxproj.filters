@@ -63,5 +63,7 @@
     <None Include=".gitignore" />
     <None Include="shader.fs" />
     <None Include="shader.vs" />
+    <None Include="flagShader.vs" />
+    <None Include="flagShader.fs" />
   </ItemGroup>
 </Project>
