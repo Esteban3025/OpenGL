@@ -9,5 +9,5 @@ uniform float mixNum;
 
 void main()
 {
-    FragColor = mix(texture(texture1, TexCoord), texture(texture2, vec2(TexCoord.x, TexCoord.y)), mixNum);
+    FragColor = texture(texture1, TexCoord);
 }

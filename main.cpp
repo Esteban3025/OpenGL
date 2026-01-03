@@ -26,7 +26,7 @@ float mixNum = 0.0;
 float planeSize = 40.0f;
 float flagSize = 3.0f;
 
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+Camera camera(glm::vec3(0.0f, 0.0f, 10.0f));
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
@@ -76,6 +76,7 @@ int main()
 
 
     Shader ourShader("shader.vs", "shader.fs");
+    Shader flagShader("flagShader.vs", "flagShader.fs");
    
 
     float vertices[] = {
@@ -144,10 +145,10 @@ int main()
     };
 
     float flagVertices[] = {
-        // positions     
-        0.5f, -0.5f, 0.0f, 
-       -0.5f, -0.5f, 0.0f,
-        0.0f,  0.5f, 0.0f,  
+        // positions         // colors
+         0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,  // bottom right
+        -0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,  // bottom left
+         0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f   // top 
     };
 
     // bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
@@ -199,14 +200,19 @@ int main()
     glBindBuffer(GL_ARRAY_BUFFER, VBOs[2]);
     glBufferData(GL_ARRAY_BUFFER, sizeof(flagVertices), flagVertices, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-    
+
+    // color attribute
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
 
     // note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    unsigned int texture1, texture2;
+    
+
+    unsigned int texture1;
     // texture 1
     // ---------
     glGenTextures(1, &texture1);
@@ -232,37 +238,13 @@ int main()
         std::cout << "Failed to load texture" << std::endl;
     }
     stbi_image_free(data);
-    // texture 2
-    // ---------
-    glGenTextures(2, &texture2);
-    glBindTexture(GL_TEXTURE_2D, texture2);
-    // set the texture wrapping parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    // set texture filtering parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    // load image, create texture and generate mipmaps
-    data = stbi_load("textures/awesomeface.png", &width, &height, &nrChannels, 0);
-    if (data)
-    {
-        // note that the awesomeface.png has transparency and thus an alpha channel, so make sure to tell OpenGL the data type is of GL_RGBA
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-    }
-    else
-    {
-        std::cout << "Failed to load texture" << std::endl;
-    }
-    stbi_image_free(data);
 
     // tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
     // -------------------------------------------------------------------------------------------
     ourShader.use(); // don't forget to activate/use the shader before setting uniforms!
+    flagShader.use();
     // either set it manually like so:
     ourShader.setInt("texture1", 0);
-    // or set it via the texture class
-    ourShader.setInt("texture2", 1);
 
     glEnable(GL_DEPTH_TEST);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -280,8 +262,6 @@ int main()
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture1);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, texture2);
     
         ourShader.use();
 
@@ -327,21 +307,29 @@ int main()
             
             ourShader.setMat4("model", model);
 
+            /*glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);*/
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }
-
-        glBindVertexArray(VAOs[2]);
-
-        glm::mat4 flagModel = glm::mat4(1.0f);
-        flagModel = glm::translate(flagModel, glm::vec3(17.0f, 0.0f, 30.0f));
-        flagModel = glm::scale(flagModel, glm::vec3(flagSize, flagSize, flagSize));
-        ourShader.setMat4("model", flagModel);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
        
         ourShader.setMat4("view", view);
         ourShader.setMat4("projection", projection);
 
         ourShader.setFloat("mixNum", mixNum);
+
+        flagShader.use();
+
+        glBindVertexArray(VAOs[2]);
+
+        glm::mat4 flagModel = glm::mat4(1.0f);
+        flagModel = glm::translate(flagModel, glm::vec3(0.0f, 0.0f, 0.0f));
+        flagModel = glm::scale(flagModel, glm::vec3(flagSize, flagSize, flagSize));
+        flagShader.setMat4("model", flagModel);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+
+        flagShader.setMat4("view", view);
+        flagShader.setMat4("projection", projection);
+
+        flagShader.setFloat("mixNum", mixNum);
 
         lastFrame = currentFrame;
         glfwSwapBuffers(window);
