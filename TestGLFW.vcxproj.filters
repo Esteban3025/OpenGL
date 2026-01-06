@@ -65,5 +65,7 @@
     <None Include="shader.vs" />
     <None Include="flagShader.vs" />
     <None Include="flagShader.fs" />
+    <None Include="cubeShader.vs" />
+    <None Include="cubeShader.fs" />
   </ItemGroup>
 </Project>

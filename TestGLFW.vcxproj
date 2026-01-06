@@ -157,6 +157,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />
+    <None Include="cubeShader.fs" />
+    <None Include="cubeShader.vs" />
     <None Include="flagShader.fs" />
     <None Include="flagShader.vs" />
     <None Include="shader.fs" />

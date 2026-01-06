@@ -77,6 +77,11 @@ public:
     {
         glUseProgram(ID);
     }
+
+    int program()
+    {
+        return ID;
+    }
     // utility uniform functions
     // ------------------------------------------------------------------------
     void setBool(const std::string& name, bool value) const
@@ -87,6 +92,18 @@ public:
     void setInt(const std::string& name, int value) const
     {
         glUniform1i(glGetUniformLocation(ID, name.c_str()), value);
+    }
+    void setColor(const std::string& name, glm::vec3 positions) 
+    {
+        glUniform4f(glGetUniformLocation(ID, name.c_str()), (float)positions.x + (float)positions.y, (float)positions.y, (float)positions.z + (float)positions.y, 1.0f);
+    }
+    void setVec3(const std::string& name, const glm::vec3& value) const
+    {
+        glUniform3fv(glGetUniformLocation(ID, name.c_str()), 1, &value[0]);
+    }
+    void setVec3(const std::string& name, float x, float y, float z) const
+    {
+        glUniform3f(glGetUniformLocation(ID, name.c_str()), x, y, z);
     }
     // ------------------------------------------------------------------------
     void setFloat(const std::string& name, float value) const
