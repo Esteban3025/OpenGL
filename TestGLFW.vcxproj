@@ -114,7 +114,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)\TestGLFW\OpenGL\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>glfw3.lib;opengl32.lib;user32.lib;shell32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>freetype/freetype.lib;glfw3.lib;opengl32.lib;user32.lib;shell32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -131,7 +131,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)\TestGLFW\OpenGL\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>glfw3.lib;opengl32.lib;user32.lib;shell32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>freetype/freetype.lib;glfw3.lib;opengl32.lib;user32.lib;shell32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -145,6 +145,7 @@
     <ClInclude Include="OpenGL\includes\GLFW\glfw3native.h" />
     <ClInclude Include="OpenGL\includes\shaders\SHADER.h" />
     <ClInclude Include="OpenGL\includes\stb_image.h" />
+    <ClInclude Include="OpenGL\includes\TEXTURES.h" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="OpenGL\lib\glfw3.lib" />
@@ -152,7 +153,11 @@
   <ItemGroup>
     <Image Include="textures\awesomeface.png" />
     <Image Include="textures\container.jpg" />
+    <Image Include="textures\floor_1.png" />
+    <Image Include="textures\tiles_floor_1.png" />
     <Image Include="textures\wall.jpg" />
+    <Image Include="textures\wooden_crate_2.png" />
+    <Image Include="textures\wooden_crate_4.png" />
     <Image Include="textures\wing.png" />
   </ItemGroup>
   <ItemGroup>
@@ -161,8 +166,14 @@
     <None Include="cubeShader.vs" />
     <None Include="flagShader.fs" />
     <None Include="flagShader.vs" />
+    <None Include="fontShader.fs" />
+    <None Include="fontShader.vs" />
+    <None Include="freetype.dll" />
     <None Include="shader.fs" />
     <None Include="shader.vs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Font Include="fonts\ARIAL.TTF" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
