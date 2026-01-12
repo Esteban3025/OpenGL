@@ -85,6 +85,14 @@
     <None Include="freetype.dll" />
     <None Include="fontShader.vs" />
     <None Include="fontShader.fs" />
+    <None Include="shaders\cubeShader.fs" />
+    <None Include="shaders\cubeShader.vs" />
+    <None Include="shaders\flagShader.fs" />
+    <None Include="shaders\flagShader.vs" />
+    <None Include="shaders\fontShader.fs" />
+    <None Include="shaders\fontShader.vs" />
+    <None Include="shaders\shader.fs" />
+    <None Include="shaders\shader.vs" />
   </ItemGroup>
   <ItemGroup>
     <Font Include="fonts\ARIAL.TTF" />

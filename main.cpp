@@ -41,6 +41,8 @@ glm::vec3 cameraPosition = camera.getPosition();
 glm::vec3 lastCamPosition = glm::vec3(0.0f, 0.0f, 3.0f);
 glm::vec3 lightPos(0.0f, 0.0f, -10.0f);
 
+unsigned int VBOs[4], VAOs[4], EBO;
+
 bool fistMouse = true;
 
 struct Character {
@@ -87,35 +89,14 @@ int main()
     std::cout << "Primary monitor width: " << monitorWidth << " pixels" << std::endl;
     std::cout << "Primary monitor height: " << monitorHeight << " pixels" << std::endl;
 
-    Shader ourShader("shader.vs", "shader.fs");
-    Shader flagShader("flagShader.vs", "flagShader.fs");
-    Shader cubeShader("cubeShader.vs", "cubeShader.fs");
-    Shader fontShader("fontShader.vs", "fontShader.fs");
+
+    Shader ourShader("shaders/shader.vs", "shaders/shader.fs");
+    Shader flagShader("shaders/flagShader.vs", "shaders/flagShader.fs");
+    Shader cubeShader("shaders/cubeShader.vs", "shaders/cubeShader.fs");
+    Shader fontShader("shaders/fontShader.vs", "shaders/fontShader.fs");
 
     Textures floorTexture("floor", "textures/tiles_floor_1.png");
     Textures cubeTexture("cube", "textures/wooden_crate_2.png");
-
-    FT_Library ft;
-    if (FT_Init_FreeType(&ft))
-    {
-        std::cout << "ERROR::FREETYPE: Could not init FreeType Library" << std::endl;
-        return -1;
-    }
-
-    FT_Face face;
-    if (FT_New_Face(ft, "fonts/ARIAL.TTF", 0, &face))
-    {
-        std::cout << "ERROR::FREETYPE: Failed to load font" << std::endl;
-        return -1;
-    }
-
-    FT_Set_Pixel_Sizes(face, 0, 48);
-
-    if (FT_Load_Char(face, 'X', FT_LOAD_RENDER))
-    {
-        std::cout << "ERROR::FREETYTPE: Failed to load Glyph" << std::endl;
-        return -1;
-    }
 
     float vertices[] = {
         // positions          // normals           // texture coords
@@ -192,9 +173,9 @@ int main()
 
     // bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
 
-    unsigned int VBOs[3], VAOs[3], EBO;
-    glGenVertexArrays(3, VAOs);
-    glGenBuffers(3, VBOs);
+    
+    glGenVertexArrays(4, VAOs);
+    glGenBuffers(4, VBOs);
     glGenBuffers(1, &EBO);
 
     // floor things
@@ -242,10 +223,8 @@ int main()
 
     // configure VAO/VBO for texture quads of the fonts
     // -----------------------------------
-    glGenVertexArrays(1, &VAOt);
-    glGenBuffers(1, &VBOt);
-    glBindVertexArray(VAOt);
-    glBindBuffer(GL_ARRAY_BUFFER, VBOt);
+    glBindVertexArray(VAOs[3]);
+    glBindBuffer(GL_ARRAY_BUFFER, VAOs[3]);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
@@ -264,7 +243,7 @@ int main()
     }
 
     // find path to font
-    std::string font_name = "fonts/ARIAL.TTF";
+    std::string font_name = "fonts/arial.ttf";
     if (font_name.empty())
     {
         std::cout << "ERROR::FREETYPE: Failed to load font_name" << std::endl;
@@ -322,13 +301,13 @@ int main()
             };
             Characters.insert(std::pair<char, Character>(c, character));
         }
-        glBindTexture(GL_TEXTURE_2D, 2);
+        glBindTexture(GL_TEXTURE_2D, 0);
     }
 
     FT_Done_Face(face);
     FT_Done_FreeType(ft);
 
-    glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(SCR_WIDTH), 0.0f, static_cast<float>(SCR_HEIGHT));
+    glm::mat4 projection = glm::ortho(0.0f, (float)1920, 0.0f, (float)1080);
 
     ourShader.use(); // don't forget to activate/use the shader before setting uniforms!
     ourShader.setInt("floorTexture", 0);
@@ -343,6 +322,9 @@ int main()
     
     
     glEnable(GL_DEPTH_TEST);
+    /*glEnable(GL_CULL_FACE);*/
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, mouse_callback);
 
@@ -442,14 +424,14 @@ int main()
 
         RenderText(fontShader, "This is sample text", 25.0f, 25.0f, 1.0f, glm::vec3(0.5, 0.8f, 0.2f));
         RenderText(fontShader, "(C) LearnOpenGL.com", 540.0f, 570.0f, 0.5f, glm::vec3(0.3, 0.7f, 0.9f));
-
+        
         lastFrame = currentFrame;
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
-    glDeleteVertexArrays(2, VAOs);
-    glDeleteBuffers(2, VBOs);
+    glDeleteVertexArrays(4, VAOs);
+    glDeleteBuffers(4, VBOs);
 
     glfwTerminate();
     return 0;
@@ -559,9 +541,9 @@ void RenderText(Shader& s, std::string text, float x, float y, float scale, glm:
 {
     // activate corresponding render state	
     s.use();
-    s.setVec3("textColor", color.x, color.y, color.z);
+    glUniform3f(glGetUniformLocation(s.ID, "textColor"), color.x, color.y, color.z);
     glActiveTexture(GL_TEXTURE2);
-    glBindVertexArray(VAOt);
+    glBindVertexArray(VAOs[3]);
 
     // iterate through all characters
     std::string::const_iterator c;
@@ -587,7 +569,7 @@ void RenderText(Shader& s, std::string text, float x, float y, float scale, glm:
         // render glyph texture over quad
         glBindTexture(GL_TEXTURE_2D, ch.TextureID);
         // update content of VBO memory
-        glBindBuffer(GL_ARRAY_BUFFER, VBOt);
+        glBindBuffer(GL_ARRAY_BUFFER, VBOs[3]);
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         // render quad
