@@ -162,15 +162,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />
-    <None Include="cubeShader.fs" />
-    <None Include="cubeShader.vs" />
-    <None Include="flagShader.fs" />
-    <None Include="flagShader.vs" />
-    <None Include="fontShader.fs" />
-    <None Include="fontShader.vs" />
     <None Include="freetype.dll" />
-    <None Include="shader.fs" />
-    <None Include="shader.vs" />
     <None Include="shaders\cubeShader.fs" />
     <None Include="shaders\cubeShader.vs" />
     <None Include="shaders\flagShader.fs" />
