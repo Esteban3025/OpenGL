@@ -149,7 +149,7 @@ int main()
     };
 
     glm::vec3 Positions[] = {
-        glm::vec3(0.0f,  0.0f,  0.0f),
+        glm::vec3(5.5f,  0.0f,  0.0f),
         glm::vec3(2.0f,  5.0f, -15.0f),
         glm::vec3(-1.5f, -2.2f, -2.5f),
         glm::vec3(-3.8f, -2.0f, -12.3f),
@@ -162,11 +162,11 @@ int main()
     };
 
     float planeVertices[] = {
-        // positions          // texture coords
-         0.9f,  0.9f, 0.0f,   1.0f, 1.0f, // top right
-         0.9f, -0.9f, 0.0f,   1.0f, 0.0f, // bottom right
-        -0.9f, -0.9f, 0.0f,   0.0f, 0.0f, // bottom left
-        -0.9f,  0.9f, 0.0f,   0.0f, 1.0f  // top left 
+        // positions          // texture coords    // normals
+         0.9f,  0.9f, 0.0f,   1.0f, 1.0f,        0.0f, 0.0f, 1.0f,  // top right
+         0.9f, -0.9f, 0.0f,   1.0f, 0.0f,        0.0f, 0.0f, 1.0f,   // bottom right
+        -0.9f, -0.9f, 0.0f,   0.0f, 0.0f,        0.0f, 0.0f, 1.0f,  // bottom left
+        -0.9f,  0.9f, 0.0f,   0.0f, 1.0f,        0.0f, 0.0f, 1.0f,  // top left 
     };
 
     unsigned int indices[] = {
@@ -183,8 +183,8 @@ int main()
 
     // positions of the point lights
     glm::vec3 pointLightPositions[] = {
-        glm::vec3(0.7f,  0.2f,  2.0f),
-        glm::vec3(2.3f, -3.3f, -4.0f),
+        glm::vec3(10.0f,  0.2f,  10.0f),
+        glm::vec3(2.5f, -0.3f, -0.4f),
         glm::vec3(-4.0f,  2.0f, -12.0f),
         glm::vec3(0.0f,  0.0f, -3.0f)
     };
@@ -204,12 +204,16 @@ int main()
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
     // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
     // texture attribute
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+
+    // normals
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float)));
+    glEnableVertexAttribArray(2);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -244,7 +248,10 @@ int main()
     
     ourShader.use(); // don't forget to activate/use the shader before setting uniforms!
     ourShader.setInt("floorTexture", 0);
-    
+    ourShader.setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
+    ourShader.setVec3("objectColor", glm::vec3(5.0f, 0.8f, 3.0f));
+    ourShader.setVec3("viewPos", camera.Position);
+    ourShader.setVec3("lightPos", pointLightPositions[0]);
     
 
     cubeShader.use();   
@@ -356,23 +363,21 @@ int main()
         cubeShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
 
        
-        glBindVertexArray(VAOs[1]); // cube things
+        glBindVertexArray(VAOs[1]); 
 
-        for (int i = 0; i < 10; i++) 
+        for (int i = 0; i < 2; i++)
         {
             glm::mat4 cubeModel = glm::mat4(1.0f);
             cubeModel = glm::translate(cubeModel, Positions[i]);
 
-            cubeModel = glm::rotate(cubeModel, (float)glfwGetTime(), glm::vec3(0.5f, 0.9f, 1.0f));
+            /*cubeModel = glm::rotate(cubeModel, (float)glfwGetTime(), glm::vec3(0.5f, 0.9f, 1.0f));*/
             cubeModel = glm::scale(cubeModel, glm::vec3(cubeSize, cubeSize, cubeSize));
 
             cubeShader.setMat4("model", cubeModel);
 
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }
-        
-        
-        
+
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, diffuseMap);
 
