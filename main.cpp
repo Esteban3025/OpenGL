@@ -149,11 +149,16 @@ int main()
     };
 
     glm::vec3 Positions[] = {
-        glm::vec3(5.0f, 0.0f,  -30.0f),
-        glm::vec3(0.0f, 0.0f,  -20.0f),
-        glm::vec3(9.0f, 0.0f,  -11.0f),
-        glm::vec3(-9.0f, 0.0f, -10.0f),
-        glm::vec3(-5.0f, 0.0f, -5.3f),
+        glm::vec3(0.0f,  0.0f,  0.0f),
+        glm::vec3(2.0f,  5.0f, -15.0f),
+        glm::vec3(-1.5f, -2.2f, -2.5f),
+        glm::vec3(-3.8f, -2.0f, -12.3f),
+        glm::vec3(2.4f, -0.4f, -3.5f),
+        glm::vec3(-1.7f,  3.0f, -7.5f),
+        glm::vec3(1.3f, -2.0f, -2.5f),
+        glm::vec3(1.5f,  2.0f, -2.5f),
+        glm::vec3(1.5f,  0.2f, -1.5f),
+        glm::vec3(-1.3f,  1.0f, -1.5f)
     };
 
     float planeVertices[] = {
@@ -174,6 +179,14 @@ int main()
          0.5f, -0.5f, 0.0f,
         -0.5f, -0.5f, 0.0f,
          0.0f,  0.5f, 0.0f,
+    };
+
+    // positions of the point lights
+    glm::vec3 pointLightPositions[] = {
+        glm::vec3(0.7f,  0.2f,  2.0f),
+        glm::vec3(2.3f, -3.3f, -4.0f),
+        glm::vec3(-4.0f,  2.0f, -12.0f),
+        glm::vec3(0.0f,  0.0f, -3.0f)
     };
 
     // bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
@@ -290,33 +303,67 @@ int main()
         ourShader.setMat4("projection", projection);
 
         cubeShader.use();
-        cubeShader.setVec3("light.position", lightPos);
         cubeShader.setVec3("viewPos", camera.Position);
-        // light properties
-        cubeShader.setVec3("light.ambient", 0.0f, 0.0f, 0.0f);
-        cubeShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f);
-        cubeShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
-
-        cubeShader.setVec3("emissionColor", emissionColor);
-
-        // material properties
         cubeShader.setFloat("material.shininess", 64.0f);
+
+        // directional light
+        cubeShader.setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
+        cubeShader.setVec3("dirLight.ambient", 0.05f, 0.05f, 0.05f);
+        cubeShader.setVec3("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
+        cubeShader.setVec3("dirLight.specular", 0.5f, 0.5f, 0.5f);
+        // point light 1
+        cubeShader.setVec3("pointLights[0].position", pointLightPositions[0]);
+        cubeShader.setVec3("pointLights[0].ambient", 0.05f, 0.05f, 0.05f);
+        cubeShader.setVec3("pointLights[0].diffuse", 0.8f, 0.8f, 0.8f);
+        cubeShader.setVec3("pointLights[0].specular", 1.0f, 1.0f, 1.0f);
+        cubeShader.setFloat("pointLights[0].constant", 1.0f);
+        cubeShader.setFloat("pointLights[0].linear", 0.09f);
+        cubeShader.setFloat("pointLights[0].quadratic", 0.032f);
+        // point light 2
+        cubeShader.setVec3("pointLights[1].position", pointLightPositions[1]);
+        cubeShader.setVec3("pointLights[1].ambient", 0.05f, 0.05f, 0.05f);
+        cubeShader.setVec3("pointLights[1].diffuse", 0.8f, 0.8f, 0.8f);
+        cubeShader.setVec3("pointLights[1].specular", 1.0f, 1.0f, 1.0f);
+        cubeShader.setFloat("pointLights[1].constant", 1.0f);
+        cubeShader.setFloat("pointLights[1].linear", 0.09f);
+        cubeShader.setFloat("pointLights[1].quadratic", 0.032f);
+        // point light 3
+        cubeShader.setVec3("pointLights[2].position", pointLightPositions[2]);
+        cubeShader.setVec3("pointLights[2].ambient", 0.05f, 0.05f, 0.05f);
+        cubeShader.setVec3("pointLights[2].diffuse", 0.8f, 0.8f, 0.8f);
+        cubeShader.setVec3("pointLights[2].specular", 1.0f, 1.0f, 1.0f);
+        cubeShader.setFloat("pointLights[2].constant", 1.0f);
+        cubeShader.setFloat("pointLights[2].linear", 0.09f);
+        cubeShader.setFloat("pointLights[2].quadratic", 0.032f);
+        // point light 4
+        cubeShader.setVec3("pointLights[3].position", pointLightPositions[3]);
+        cubeShader.setVec3("pointLights[3].ambient", 0.05f, 0.05f, 0.05f);
+        cubeShader.setVec3("pointLights[3].diffuse", 0.8f, 0.8f, 0.8f);
+        cubeShader.setVec3("pointLights[3].specular", 1.0f, 1.0f, 1.0f);
+        cubeShader.setFloat("pointLights[3].constant", 1.0f);
+        cubeShader.setFloat("pointLights[3].linear", 0.09f);
+        cubeShader.setFloat("pointLights[3].quadratic", 0.032f);
+        // spotLight
+        cubeShader.setVec3("spotLight.position", camera.Position);
+        cubeShader.setVec3("spotLight.direction", camera.Front);
+        cubeShader.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
+        cubeShader.setVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
+        cubeShader.setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
+        cubeShader.setFloat("spotLight.constant", 1.0f);
+        cubeShader.setFloat("spotLight.linear", 0.09f);
+        cubeShader.setFloat("spotLight.quadratic", 0.032f);
+        cubeShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
+        cubeShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
+
        
         glBindVertexArray(VAOs[1]); // cube things
 
-        for (int i = 0; i < 5; i++) 
+        for (int i = 0; i < 10; i++) 
         {
             glm::mat4 cubeModel = glm::mat4(1.0f);
+            cubeModel = glm::translate(cubeModel, Positions[i]);
 
-            if (i == 0)
-            {
-                cubeModel = glm::translate(cubeModel, cubePos);
-            }
-            else
-            {
-                cubeModel = glm::translate(cubeModel, Positions[i]);
-            }
-            
+            cubeModel = glm::rotate(cubeModel, (float)glfwGetTime(), glm::vec3(0.5f, 0.9f, 1.0f));
             cubeModel = glm::scale(cubeModel, glm::vec3(cubeSize, cubeSize, cubeSize));
 
             cubeShader.setMat4("model", cubeModel);
@@ -342,19 +389,23 @@ int main()
 
         glBindVertexArray(VAOs[2]); // flag|triangle things 
 
-        glm::mat4 flagModel = glm::mat4(1.0f);
-        flagModel = glm::translate(flagModel, lightPos);
-        flagModel = glm::scale(flagModel, glm::vec3(flagSize, flagSize, flagSize));
-        flagShader.setMat4("model", flagModel);
-        
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        for (unsigned int i = 0; i < 4; i++)
+        {
+            glm::mat4 flagModel = glm::mat4(1.0f);
+            flagModel = glm::translate(flagModel, pointLightPositions[i]);
+            flagModel = glm::scale(flagModel, glm::vec3(0.2f)); // Make it a smaller cube
+            flagShader.setMat4("model", flagModel);
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
         
         /*lightPos.x = 1.0f + sin(glfwGetTime()) * 2.0f;
         lightPos.y = sin(glfwGetTime() / 2.0f) * 1.0f;*/
 
+        emissionColor.y = sin(glfwGetTime()) * 1.0f;
 
-        /*lightPos.z = -45.0f + sin(glfwGetTime()) * 100.0f;*/
-        // lightPos.y = sin(glfwGetTime() / 2.0f) * 1.0f;
+
+        /*lightPos.z = -45.0f + sin(glfwGetTime()) * 100.0f;
+        lightPos.y = sin(glfwGetTime() / 2.0f) * 1.0f;*/
       
         flagShader.setMat4("view", view);
         flagShader.setMat4("projection", projection);
