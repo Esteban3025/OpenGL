@@ -34,6 +34,8 @@ glm::vec3 camPos = glm::vec3(0.0f, 0.0f, 10.0f);
 glm::vec3 cubePos = glm::vec3(0.0f, -1.5f, 0.0f);
 Camera camera(camPos);
 
+glm::vec3 flagAndLightColor = glm::vec3(5.0f, 3.0f, 4.0f);
+
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
@@ -74,7 +76,7 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    // glfwGetPrimaryMonitor();
+    // glfwGetPrimaryMonitor(); full screen
     GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "GameEngine", NULL, NULL);
     if (window == NULL)
     {
@@ -105,7 +107,7 @@ int main()
 
     Shader ourShader("shaders/shader.vs", "shaders/shader.fs");
     Shader flagShader("shaders/flagShader.vs", "shaders/flagShader.fs");
-    Shader cubeShader("shaders/shader.vs", "shaders/shader.fs");
+    Shader cubeShader("shaders/cubeShader.vs", "shaders/cubeShader.fs");
 
     unsigned int diffuseMap = loadTexture("textures/container2.png");
     unsigned int floorTexture = loadTexture("textures/tiles_floor_1.png");
@@ -157,9 +159,9 @@ int main()
         -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f
     };
 
-    glm::vec3 Positions[] = {
-        glm::vec3(0.0f,  -0.5f,  0.0f),
-        glm::vec3(8.0f,  -0.5f,  0.0f),
+    glm::vec3 cubePositions[] = {
+        glm::vec3(0.0f,  cubePos.y,  0.0f),
+        glm::vec3(8.0f,  cubePos.y,  0.0f),
         glm::vec3(-1.5f, -2.2f, -2.5f),
         glm::vec3(-3.8f, -2.0f, -12.3f),
         glm::vec3(2.4f, -0.4f, -3.5f),
@@ -249,14 +251,16 @@ int main()
     
     ourShader.use(); // don't forget to activate/use the shader before setting uniforms!
     ourShader.setInt("material.diffuse", 0);
-    
+    ourShader.setVec3("flagAndLightColor", flagAndLightColor);
 
     cubeShader.use();   
     cubeShader.setInt("material.diffuse", 1);
     cubeShader.setInt("material.specular", 2);
+    cubeShader.setVec3("flagAndLightColor", flagAndLightColor);
     
 
     flagShader.use();
+    flagShader.setVec3("flagAndLightColor", flagAndLightColor);
    
 
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -322,7 +326,7 @@ int main()
         for (int i = 0; i < 2; i++)
         {
             glm::mat4 cubeModel = glm::mat4(1.0f);
-            cubeModel = glm::translate(cubeModel, Positions[i]);
+            cubeModel = glm::translate(cubeModel, cubePositions[i]);
 
             /*cubeModel = glm::rotate(cubeModel, (float)glfwGetTime(), glm::vec3(0.5f, 0.9f, 1.0f));*/
             cubeModel = glm::scale(cubeModel, glm::vec3(cubeSize, cubeSize, cubeSize));

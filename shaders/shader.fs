@@ -53,6 +53,7 @@ uniform DirLight dirLight;
 uniform PointLight pointLights[NR_POINT_LIGHTS];
 uniform SpotLight spotLight;
 uniform Material material;
+uniform vec3 flagAndLightColor;
 
 
 vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir);
@@ -112,7 +113,7 @@ vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
     ambient *= attenuation;
     diffuse *= attenuation;
     specular *= attenuation;
-    return (ambient + diffuse + specular) * vec3(0.0f, 0.0f, 5.0f);
+    return (ambient + diffuse + specular) * flagAndLightColor;
 }
 
 // calculates the color when using a spot light.
