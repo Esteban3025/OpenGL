@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -117,7 +117,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>
       </AdditionalLibraryDirectories>
-      <AdditionalDependencies>freetype/freetype.lib;glfw3.lib;opengl32.lib;user32.lib;shell32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>assimp-vc143-mtd.lib;glfw3.lib;opengl32.lib;user32.lib;shell32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -142,15 +142,101 @@
     <ClCompile Include="OpenGL\lib\glad.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="OpenGL\includes\assimp\aabb.h" />
+    <ClInclude Include="OpenGL\includes\assimp\ai_assert.h" />
+    <ClInclude Include="OpenGL\includes\assimp\anim.h" />
+    <ClInclude Include="OpenGL\includes\assimp\AssertHandler.h" />
+    <ClInclude Include="OpenGL\includes\assimp\Base64.hpp" />
+    <ClInclude Include="OpenGL\includes\assimp\BaseImporter.h" />
+    <ClInclude Include="OpenGL\includes\assimp\Bitmap.h" />
+    <ClInclude Include="OpenGL\includes\assimp\BlobIOSystem.h" />
+    <ClInclude Include="OpenGL\includes\assimp\ByteSwapper.h" />
+    <ClInclude Include="OpenGL\includes\assimp\camera.h" />
+    <ClInclude Include="OpenGL\includes\assimp\cexport.h" />
+    <ClInclude Include="OpenGL\includes\assimp\cfileio.h" />
+    <ClInclude Include="OpenGL\includes\assimp\cimport.h" />
+    <ClInclude Include="OpenGL\includes\assimp\ColladaMetaData.h" />
+    <ClInclude Include="OpenGL\includes\assimp\color4.h" />
+    <ClInclude Include="OpenGL\includes\assimp\commonMetaData.h" />
+    <ClInclude Include="OpenGL\includes\assimp\Compiler\poppack1.h" />
+    <ClInclude Include="OpenGL\includes\assimp\Compiler\pstdint.h" />
+    <ClInclude Include="OpenGL\includes\assimp\Compiler\pushpack1.h" />
+    <ClInclude Include="OpenGL\includes\assimp\CreateAnimMesh.h" />
+    <ClInclude Include="OpenGL\includes\assimp\DefaultIOStream.h" />
+    <ClInclude Include="OpenGL\includes\assimp\DefaultIOSystem.h" />
+    <ClInclude Include="OpenGL\includes\assimp\DefaultLogger.hpp" />
+    <ClInclude Include="OpenGL\includes\assimp\defs.h" />
+    <ClInclude Include="OpenGL\includes\assimp\Exceptional.h" />
+    <ClInclude Include="OpenGL\includes\assimp\Exporter.hpp" />
+    <ClInclude Include="OpenGL\includes\assimp\fast_atof.h" />
+    <ClInclude Include="OpenGL\includes\assimp\GenericProperty.h" />
+    <ClInclude Include="OpenGL\includes\assimp\GltfMaterial.h" />
+    <ClInclude Include="OpenGL\includes\assimp\Hash.h" />
+    <ClInclude Include="OpenGL\includes\assimp\Importer.hpp" />
+    <ClInclude Include="OpenGL\includes\assimp\importerdesc.h" />
+    <ClInclude Include="OpenGL\includes\assimp\IOStream.hpp" />
+    <ClInclude Include="OpenGL\includes\assimp\IOStreamBuffer.h" />
+    <ClInclude Include="OpenGL\includes\assimp\IOSystem.hpp" />
+    <ClInclude Include="OpenGL\includes\assimp\light.h" />
+    <ClInclude Include="OpenGL\includes\assimp\LineSplitter.h" />
+    <ClInclude Include="OpenGL\includes\assimp\LogAux.h" />
+    <ClInclude Include="OpenGL\includes\assimp\Logger.hpp" />
+    <ClInclude Include="OpenGL\includes\assimp\LogStream.hpp" />
+    <ClInclude Include="OpenGL\includes\assimp\material.h" />
+    <ClInclude Include="OpenGL\includes\assimp\MathFunctions.h" />
+    <ClInclude Include="OpenGL\includes\assimp\matrix3x3.h" />
+    <ClInclude Include="OpenGL\includes\assimp\matrix4x4.h" />
+    <ClInclude Include="OpenGL\includes\assimp\MemoryIOWrapper.h" />
+    <ClInclude Include="OpenGL\includes\assimp\mesh.h" />
+    <ClInclude Include="OpenGL\includes\assimp\metadata.h" />
+    <ClInclude Include="OpenGL\includes\assimp\NullLogger.hpp" />
+    <ClInclude Include="OpenGL\includes\assimp\ObjMaterial.h" />
+    <ClInclude Include="OpenGL\includes\assimp\ParsingUtils.h" />
+    <ClInclude Include="OpenGL\includes\assimp\pbrmaterial.h" />
+    <ClInclude Include="OpenGL\includes\assimp\port\AndroidJNI\AndroidJNIIOSystem.h" />
+    <ClInclude Include="OpenGL\includes\assimp\port\AndroidJNI\BundledAssetIOSystem.h" />
+    <ClInclude Include="OpenGL\includes\assimp\postprocess.h" />
+    <ClInclude Include="OpenGL\includes\assimp\Profiler.h" />
+    <ClInclude Include="OpenGL\includes\assimp\ProgressHandler.hpp" />
+    <ClInclude Include="OpenGL\includes\assimp\qnan.h" />
+    <ClInclude Include="OpenGL\includes\assimp\quaternion.h" />
+    <ClInclude Include="OpenGL\includes\assimp\RemoveComments.h" />
+    <ClInclude Include="OpenGL\includes\assimp\scene.h" />
+    <ClInclude Include="OpenGL\includes\assimp\SceneCombiner.h" />
+    <ClInclude Include="OpenGL\includes\assimp\SGSpatialSort.h" />
+    <ClInclude Include="OpenGL\includes\assimp\SkeletonMeshBuilder.h" />
+    <ClInclude Include="OpenGL\includes\assimp\SmallVector.h" />
+    <ClInclude Include="OpenGL\includes\assimp\SmoothingGroups.h" />
+    <ClInclude Include="OpenGL\includes\assimp\SpatialSort.h" />
+    <ClInclude Include="OpenGL\includes\assimp\StandardShapes.h" />
+    <ClInclude Include="OpenGL\includes\assimp\StreamReader.h" />
+    <ClInclude Include="OpenGL\includes\assimp\StreamWriter.h" />
+    <ClInclude Include="OpenGL\includes\assimp\StringComparison.h" />
+    <ClInclude Include="OpenGL\includes\assimp\StringUtils.h" />
+    <ClInclude Include="OpenGL\includes\assimp\Subdivision.h" />
+    <ClInclude Include="OpenGL\includes\assimp\texture.h" />
+    <ClInclude Include="OpenGL\includes\assimp\TinyFormatter.h" />
+    <ClInclude Include="OpenGL\includes\assimp\types.h" />
+    <ClInclude Include="OpenGL\includes\assimp\vector2.h" />
+    <ClInclude Include="OpenGL\includes\assimp\vector3.h" />
+    <ClInclude Include="OpenGL\includes\assimp\version.h" />
+    <ClInclude Include="OpenGL\includes\assimp\Vertex.h" />
+    <ClInclude Include="OpenGL\includes\assimp\XmlParser.h" />
+    <ClInclude Include="OpenGL\includes\assimp\XMLTools.h" />
+    <ClInclude Include="OpenGL\includes\assimp\ZipArchiveIOSystem.h" />
     <ClInclude Include="OpenGL\includes\CAMERA.h" />
+    <ClInclude Include="OpenGL\includes\ft2build.h" />
     <ClInclude Include="OpenGL\includes\glad\glad.h" />
     <ClInclude Include="OpenGL\includes\GLFW\glfw3.h" />
     <ClInclude Include="OpenGL\includes\GLFW\glfw3native.h" />
+    <ClInclude Include="OpenGL\includes\MESH.h" />
+    <ClInclude Include="OpenGL\includes\MODEL.H" />
     <ClInclude Include="OpenGL\includes\shaders\SHADER.h" />
     <ClInclude Include="OpenGL\includes\stb_image.h" />
     <ClInclude Include="OpenGL\includes\TEXTURES.h" />
   </ItemGroup>
   <ItemGroup>
+    <Library Include="OpenGL\lib\assimp-vc143-mtd.lib" />
     <Library Include="OpenGL\lib\glfw3.lib" />
   </ItemGroup>
   <ItemGroup>
@@ -165,13 +251,23 @@
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />
-    <None Include="freetype.dll" />
+    <None Include="assimp-vc143-mtd.dll" />
+    <None Include="OpenGL\includes\assimp\color4.inl" />
+    <None Include="OpenGL\includes\assimp\material.inl" />
+    <None Include="OpenGL\includes\assimp\matrix3x3.inl" />
+    <None Include="OpenGL\includes\assimp\matrix4x4.inl" />
+    <None Include="OpenGL\includes\assimp\quaternion.inl" />
+    <None Include="OpenGL\includes\assimp\SmoothingGroups.inl" />
+    <None Include="OpenGL\includes\assimp\vector2.inl" />
+    <None Include="OpenGL\includes\assimp\vector3.inl" />
     <None Include="shaders\cubeShader.fs" />
     <None Include="shaders\cubeShader.vs" />
     <None Include="shaders\flagShader.fs" />
     <None Include="shaders\flagShader.vs" />
     <None Include="shaders\fontShader.fs" />
     <None Include="shaders\fontShader.vs" />
+    <None Include="shaders\model.fs" />
+    <None Include="shaders\model.vs" />
     <None Include="shaders\shader.fs" />
     <None Include="shaders\shader.vs" />
   </ItemGroup>
