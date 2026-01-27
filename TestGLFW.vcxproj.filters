@@ -32,16 +32,16 @@
     <ClInclude Include="OpenGL\includes\glad\glad.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="OpenGL\includes\shaders\SHADER.h">
+    <ClInclude Include="OpenGL\includes\tools\SHADER.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="OpenGL\includes\stb_image.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="OpenGL\includes\CAMERA.h">
+    <ClInclude Include="OpenGL\includes\tools\CAMERA.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="OpenGL\includes\TEXTURES.h">
+    <ClInclude Include="OpenGL\includes\tools\TEXTURES.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="OpenGL\includes\assimp\Compiler\poppack1.h">
@@ -290,10 +290,10 @@
     <ClInclude Include="OpenGL\includes\assimp\ZipArchiveIOSystem.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="OpenGL\includes\MODEL.H">
+    <ClInclude Include="OpenGL\includes\tools\MODEL.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="OpenGL\includes\MESH.h">
+    <ClInclude Include="OpenGL\includes\tools\MESH.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="OpenGL\includes\ft2build.h">
@@ -338,8 +338,8 @@
     <None Include="shaders\flagShader.vs" />
     <None Include="shaders\fontShader.fs" />
     <None Include="shaders\fontShader.vs" />
-    <None Include="shaders\shader.fs" />
-    <None Include="shaders\shader.vs" />
+    <None Include="shaders\floor.fs" />
+    <None Include="shaders\floor.vs" />
     <None Include="OpenGL\includes\assimp\color4.inl">
       <Filter>Archivos de encabezado</Filter>
     </None>

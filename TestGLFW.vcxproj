@@ -224,16 +224,16 @@
     <ClInclude Include="OpenGL\includes\assimp\XmlParser.h" />
     <ClInclude Include="OpenGL\includes\assimp\XMLTools.h" />
     <ClInclude Include="OpenGL\includes\assimp\ZipArchiveIOSystem.h" />
-    <ClInclude Include="OpenGL\includes\CAMERA.h" />
+    <ClInclude Include="OpenGL\includes\tools\CAMERA.h" />
     <ClInclude Include="OpenGL\includes\ft2build.h" />
     <ClInclude Include="OpenGL\includes\glad\glad.h" />
     <ClInclude Include="OpenGL\includes\GLFW\glfw3.h" />
     <ClInclude Include="OpenGL\includes\GLFW\glfw3native.h" />
-    <ClInclude Include="OpenGL\includes\MESH.h" />
-    <ClInclude Include="OpenGL\includes\MODEL.H" />
-    <ClInclude Include="OpenGL\includes\shaders\SHADER.h" />
+    <ClInclude Include="OpenGL\includes\tools\MESH.h" />
+    <ClInclude Include="OpenGL\includes\tools\MODEL.h" />
+    <ClInclude Include="OpenGL\includes\tools\SHADER.h" />
     <ClInclude Include="OpenGL\includes\stb_image.h" />
-    <ClInclude Include="OpenGL\includes\TEXTURES.h" />
+    <ClInclude Include="OpenGL\includes\tools\TEXTURES.h" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="OpenGL\lib\assimp-vc143-mtd.lib" />
@@ -268,8 +268,8 @@
     <None Include="shaders\fontShader.vs" />
     <None Include="shaders\model.fs" />
     <None Include="shaders\model.vs" />
-    <None Include="shaders\shader.fs" />
-    <None Include="shaders\shader.vs" />
+    <None Include="shaders\floor.fs" />
+    <None Include="shaders\floor.vs" />
   </ItemGroup>
   <ItemGroup>
     <Font Include="fonts\ARIAL.TTF" />
