@@ -23,9 +23,9 @@ const unsigned int SCR_HEIGHT = 1080;
 float planeSize = 40.0f;
 float flagSize = 3.0f;
 float cubeSize = 2.5f;
-glm::vec3 camPos = glm::vec3(0.0f, 0.0f, 5.0f);
+glm::vec3 camPos = glm::vec3(0.0f, 0.0f, 0.0f);
 glm::vec3 cubePos = glm::vec3(0.0f, -1.5f, 0.0f);
-glm::vec3 flagPos = glm::vec3(0.0f, 0.0f, 10.0f);
+glm::vec3 flagPos = glm::vec3(0.0f, 0.0f, 0.0f);
 Camera camera(camPos);
 
 float deltaTime = 0.0f;
@@ -63,13 +63,15 @@ int main()
     }
 
     glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
     stbi_set_flip_vertically_on_load(true);
 
     Shader modelShader("shaders/model.vs", "shaders/model.fs");
     Shader flagShader("shaders/flagShader.vs", "shaders/flagShader.fs");
-    Shader floorShader("shaders/flagShader.vs", "shaders/flagShader.fs");
 
     Model ourModel("textures/sponza/sponza.obj");
+    unsigned int emissionMap = loadTexture("textures/matrix.jpg");
+    
 
     float vertices[] = {
         -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
@@ -114,17 +116,6 @@ int main()
         -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
         -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
     };
-
-    float floorVertices[] = {
-        // first triangle
-        -0.9f, -0.5f, 0.0f,  // left 
-        -0.0f, -0.5f, 0.0f,  // right
-        -0.45f, 0.5f, 0.0f,  // top 
-        // second triangle
-         0.0f, -0.5f, 0.0f,  // left
-         0.9f, -0.5f, 0.0f,  // right
-         0.45f, 0.5f, 0.0f   // top 
-    };
   
 
     // Flag and lights data 
@@ -139,24 +130,10 @@ int main()
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
-    // Floor datas
-    unsigned int floorVBO, floorVAO;
-    glGenVertexArrays(1, &floorVAO);
-    glGenBuffers(1, &floorVBO);
-    glBindVertexArray(floorVAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, floorVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(floorVertices), floorVertices, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-
     flagShader.use();
 
-    floorShader.use();
-
     modelShader.use();   
-    
+    modelShader.setInt("material.emission", emissionMap);
 
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, mouse_callback);
@@ -174,14 +151,13 @@ int main()
 
         modelShader.use();
 
-        modelShader.setVec3("light.position", flagPos);
+        
         modelShader.setVec3("viewPos", camera.Position);
-        modelShader.setVec3("light.direction", camera.Front);
-        modelShader.setFloat("light.cutOff", glm::cos(glm::radians(12.5f)));
-        modelShader.setFloat("light.outerCutOff", glm::cos(glm::radians(17.5f)));
+       
 
         // light properties
-        modelShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
+        modelShader.setVec3("light.position", flagPos);
+        modelShader.setVec3("light.ambient", 0.02f, 0.02f, 0.02f);
         modelShader.setVec3("light.diffuse", 0.8f, 0.8f, 0.8f);
         modelShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
         modelShader.setFloat("light.constant", 1.0f);
@@ -191,7 +167,6 @@ int main()
         // material properties
         modelShader.setFloat("material.shininess", 32.0f);
         modelShader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
-        modelShader.setVec3("material.diffuse", 1.0f, 0.5f, 0.31f);
 
         // view/projection transformations
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
@@ -201,7 +176,7 @@ int main()
 
         // render the loaded model
         glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, -3.0f, 0.0f)); // translate it down so it's at the center of the scene
+        model = glm::translate(model, glm::vec3(0.0f, -1.0f, 0.0f)); // translate it down so it's at the center of the scene
         model = glm::scale(model, glm::vec3(0.01f, 0.01f, 0.01f));
         modelShader.setMat4("model", model);
         ourModel.Draw(modelShader);
@@ -209,28 +184,19 @@ int main()
         /// ************************ FLAG LIGHTSS THINGS **********************************
         flagShader.use();
         glm::mat4 flagProjection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-        glm::mat4 flagView = camera.GetViewMatrix();
+        glm::mat4 viewRotation = glm::mat4(glm::mat3(view));
         flagShader.setMat4("projection", flagProjection);
-        flagShader.setMat4("view", flagView);
+        flagShader.setMat4("view", view);
 
         glm::mat4 flagModel = glm::mat4(1.0f);
         flagModel = glm::translate(flagModel, flagPos);
+        flagModel = glm::scale(flagModel, glm::vec3(0.1f, 0.1f, 0.1f));
         flagShader.setMat4("model", flagModel);
+
+        
 
         glBindVertexArray(ligthCubeVAO);
         glDrawArrays(GL_TRIANGLES, 0, 36);
-
-        /// ************************ FLOOR THINGS **********************************
-        floorShader.use();
-        floorShader.setMat4("projection", flagProjection);
-        floorShader.setMat4("view", flagView);
-
-        glm::mat4 floorModel = glm::mat4(1.0f);
-        floorModel = glm::translate(floorModel, glm::vec3(0.0f, -0.3f, 0.0f));
-        floorShader.setMat4("model", floorModel);
-
-        glBindVertexArray(floorVAO);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
         
         lastFrame = currentFrame;
         glfwSwapBuffers(window);
@@ -286,29 +252,48 @@ void processInput(GLFWwindow* window)
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
 
+    // reset camera
 
-    // flag movement
+    if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS)
+    {
+        camPos.z = 0.0f;
+        camPos.x = 0.0f;
+        camPos.y = 0.0f;
+        camera.Position = camPos;
+    }
 
-    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+
+    // flag/Light movement
+
+    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
     {
         flagPos.z += flagMovementSpeed;
     }
-    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
     {
         flagPos.z -= flagMovementSpeed;
     }
-    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
     {
         flagPos.x += flagMovementSpeed;
     }
-    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
     {
         flagPos.x -= flagMovementSpeed;
+    }
+    if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS)
+    {
+        flagPos.y -= flagMovementSpeed;
+    }
+    if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS)
+    {
+        flagPos.y += flagMovementSpeed;
     }
     if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS)
     {
         flagPos.x = 0.0f;
         flagPos.z = 0.0f;
+        flagPos.y = 0.0f;
     }
 }
 
@@ -377,7 +362,7 @@ unsigned int loadTexture(char const* path)
         std::cout << "Texture failed to load at path: " << path << std::endl;
         stbi_image_free(data);
     }
-
+    
     return textureID;
 }
 

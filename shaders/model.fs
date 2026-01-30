@@ -2,10 +2,11 @@
 out vec4 FragColor;
 
 struct Material {
-    vec3 ambient;
     sampler2D texture_diffuse1;
+    sampler2D emission;
     vec3 specular;    
     float shininess;
+
 }; 
 
 struct Light {
@@ -14,6 +15,10 @@ struct Light {
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
+
+    float constant;
+    float linear;
+    float quadratic;
 };
 
 in vec2 TexCoords;
@@ -26,16 +31,25 @@ uniform sampler2D texture_specular1;
 uniform Light light;
 uniform Material material;
 
+float near = 0.1; 
+float far  = 100.0;
+
+float LinearizeDepth(float depth) 
+{
+    float z = depth * 2.0 - 1.0; // back to NDC 
+    return (2.0 * near * far) / (far + near - z * (far - near));	
+}
 
 void main()
 {   
-    vec3 ambient = light.ambient * texture(texture_diffuse1, TexCoords).rgb;
+    float depth = LinearizeDepth(gl_FragCoord.z) / far;
+    vec3 ambient = light.ambient * texture(material.texture_diffuse1, TexCoords).rgb;
 
     // diffuse 
     vec3 norm = normalize(Normal);
     vec3 lightDir = normalize(light.position - FragPos);
     float diff = max(dot(norm, lightDir), 0.0);
-    vec3 diffuse = light.diffuse * diff * texture(texture_diffuse1, TexCoords).rgb;
+    vec3 diffuse = light.diffuse * diff * texture(material.texture_diffuse1, TexCoords).rgb;
 
     // specular
     vec3 viewDir = normalize(viewPos - FragPos);
@@ -43,7 +57,16 @@ void main()
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
     vec3 specular = light.specular * spec * texture(texture_specular1, TexCoords).rgb;  
 
+    vec3 emission = texture(material.emission, TexCoords).rgb;
 
-    vec3 result = ambient + diffuse + specular;
-    FragColor = vec4(result, 1.0f);
+    float distance = length(light.position - FragPos);
+    float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));  
+
+    ambient  *= attenuation;  
+    diffuse   *= attenuation;
+    specular *= attenuation;   
+
+    vec3 result = ambient + diffuse + specular + emission;
+
+    FragColor = vec4(vec3(result + (depth)), 1.0);    
 }
