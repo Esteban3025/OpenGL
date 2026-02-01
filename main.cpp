@@ -64,13 +64,14 @@ int main()
 
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
+
     stbi_set_flip_vertically_on_load(true);
 
     Shader modelShader("shaders/model.vs", "shaders/model.fs");
     Shader flagShader("shaders/flagShader.vs", "shaders/flagShader.fs");
+    Shader cubeShader("shaders/cubeShader.vs", "shaders/cubeShader.fs");
 
     Model ourModel("textures/sponza/sponza.obj");
-    unsigned int emissionMap = loadTexture("textures/matrix.jpg");
     
 
     float vertices[] = {
@@ -130,10 +131,24 @@ int main()
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
+    // cube random data
+    unsigned int cubeVBO, cubeVAO;
+    glGenVertexArrays(1, &cubeVAO);
+    glGenBuffers(1, &cubeVBO);
+    glBindVertexArray(cubeVAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+
     flagShader.use();
 
-    modelShader.use();   
-    modelShader.setInt("material.emission", emissionMap);
+    cubeShader.use();
+
+    modelShader.use(); 
 
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, mouse_callback);
@@ -150,10 +165,8 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         modelShader.use();
-
         
         modelShader.setVec3("viewPos", camera.Position);
-       
 
         // light properties
         modelShader.setVec3("light.position", flagPos);
@@ -183,9 +196,7 @@ int main()
 
         /// ************************ FLAG LIGHTSS THINGS **********************************
         flagShader.use();
-        glm::mat4 flagProjection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-        glm::mat4 viewRotation = glm::mat4(glm::mat3(view));
-        flagShader.setMat4("projection", flagProjection);
+        flagShader.setMat4("projection", projection);
         flagShader.setMat4("view", view);
 
         glm::mat4 flagModel = glm::mat4(1.0f);
@@ -193,9 +204,20 @@ int main()
         flagModel = glm::scale(flagModel, glm::vec3(0.1f, 0.1f, 0.1f));
         flagShader.setMat4("model", flagModel);
 
-        
-
         glBindVertexArray(ligthCubeVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+
+        /// ************************  RANDOM CUBE THINGS **********************************
+        cubeShader.use();
+        cubeShader.setMat4("projection", projection);
+        cubeShader.setMat4("view", view);
+
+        glm::mat4 cubeModel = glm::mat4(1.0f);
+        cubeModel = glm::translate(cubeModel, glm::vec3(0.0f, 0.0f, 0.0f));
+        cubeModel = glm::scale(cubeModel, glm::vec3(0.5f, 0.5f, 0.5f));
+        cubeShader.setMat4("model", cubeModel);
+
+        glBindVertexArray(cubeVAO);
         glDrawArrays(GL_TRIANGLES, 0, 36);
         
         lastFrame = currentFrame;
