@@ -25,7 +25,6 @@ in vec3 FragPos;
 in vec3 Normal;
 
 uniform vec3 viewPos;
-uniform sampler2D texture_diffuse1;
 uniform sampler2D texture_specular1;
 uniform Light light;
 uniform Material material;
@@ -41,6 +40,9 @@ float LinearizeDepth(float depth)
 
 void main()
 {   
+    vec3 color = vec3(0.0f, 0.5, 0.0f);
+
+
     float depth = LinearizeDepth(gl_FragCoord.z) / far;
     vec3 ambient = light.ambient * texture(material.texture_diffuse1, TexCoords).rgb;
 
@@ -59,11 +61,11 @@ void main()
     float distance = length(light.position - FragPos);
     float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));  
 
-    ambient  *= attenuation;  
-    diffuse   *= attenuation;
-    specular *= attenuation;   
+    ambient  *= attenuation + color;  
+    diffuse   *= attenuation + color;
+    specular *= attenuation + color;   
 
-    vec3 result = ambient + diffuse + specular;
+    vec3 result = (ambient + diffuse + specular) * color;
 
-    FragColor = vec4(vec3(result + (depth * 2)), 1.0);    
+    FragColor = vec4(vec3(result + (depth)), 1.0);    
 }

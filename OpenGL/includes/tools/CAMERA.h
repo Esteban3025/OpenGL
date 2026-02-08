@@ -65,6 +65,11 @@ public:
         return glm::lookAt(Position, Position + Front, Up);
     }
 
+    glm::mat4 getCameraRotation()
+    {
+        return glm::lookAt(Position, Position + Front, Up);
+    }
+
     glm::vec3 getPosition()
     {
         return Position;

@@ -5,6 +5,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
+
 #include <tools/shader.h>
 #include <tools/camera.h>
 #include <tools/model.h>
@@ -14,7 +18,7 @@
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
-void processInput(GLFWwindow* window);
+void processInput(GLFWwindow* window, ImGuiIO& io);
 unsigned int loadTexture(char const* path);
 
 const unsigned int SCR_WIDTH = 1920;
@@ -70,8 +74,10 @@ int main()
     Shader modelShader("shaders/model.vs", "shaders/model.fs");
     Shader flagShader("shaders/flagShader.vs", "shaders/flagShader.fs");
     Shader cubeShader("shaders/cubeShader.vs", "shaders/cubeShader.fs");
+    Shader gunShader("shaders/gunShader.vs", "shaders/gunShader.fs");
 
     Model ourModel("textures/sponza/sponza.obj");
+    Model gunModel("textures/shotgun/shotgun_1.obj");
     
     unsigned int cubeTexture = loadTexture("textures/wooden_crate_4.png");
 
@@ -152,21 +158,46 @@ int main()
     cubeShader.use();
     cubeShader.setInt("texture1", 0);
 
-    modelShader.use(); 
+    modelShader.use();
+
+    gunShader.use();
+    
+
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+    ImGui::StyleColorsDark();
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init("#version 330");
 
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, mouse_callback);
 
-
     while (!glfwWindowShouldClose(window))
     {
-        processInput(window);
+        processInput(window, io);
 
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
 
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
+        // CALCULATION FOR MAKE A VIEW FOR PARENT-CHILD RELATIONSHIP
+        glm::mat4 cameraWorld = glm::translate(glm::mat4(1.0f), camPos);
+        glm::mat4 cameraRotation = camera.getCameraRotation();
+        cameraRotation = glm::inverse(cameraRotation);
+        cameraWorld *= cameraRotation;
+
+        glm::mat4 worldView = glm::inverse(cameraWorld);
+
+        // glm::mat4 cubeWorld = cameraWorld * modelOfTheChildObject;
+        // modelShaderOfTheCHild.setMat4("model", cubeWorld);
+        // modelShaderOfTheCHild.setMat4("view", worldView);
 
         modelShader.use();
         
@@ -198,7 +229,26 @@ int main()
         modelShader.setMat4("model", model);
         ourModel.Draw(modelShader);
 
-        /// ************************ FLAG LIGHTSS THINGS **********************************
+        // ************************* GUN MODEL  *******************************************
+
+        gunShader.use();
+
+        // view/projection transformations
+        gunShader.setMat4("projection", projection);
+        gunShader.setMat4("view", worldView);
+
+        // render the loaded model
+        glm::mat4 gunModelMatrix = glm::mat4(1.0f);
+        gunModelMatrix = glm::translate(gunModelMatrix, glm::vec3(0.4f, -0.1f, -1.0f)); // translate it down so it's at the center of the scene
+        /*gunModelMatrix = glm::scale(gunModelMatrix, glm::vec3(0.01f, 0.01f, 0.01f));*/
+        gunModelMatrix = glm::rotate(gunModelMatrix, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 1.0f));
+
+        glm::mat4 cubeWorld = cameraWorld * gunModelMatrix;
+        gunShader.setMat4("model", cubeWorld);
+        gunModel.Draw(gunShader);
+        
+        
+        /// ************************ FLAG LIGHTSS THINGS ******s****************************
         flagShader.use();
         flagShader.setMat4("projection", projection);
         flagShader.setMat4("view", view);
@@ -211,13 +261,18 @@ int main()
         glBindVertexArray(ligthCubeVAO);
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
+
+        /// ************************  RANDOM CUBE THINGS **********************************
+
         cubeShader.use();
+
         cubeShader.setMat4("projection", projection);
         cubeShader.setMat4("view", view);
 
         glm::mat4 cubeModel = glm::mat4(1.0f);
         cubeModel = glm::translate(cubeModel, glm::vec3(0.0f, 0.0f, 0.0f));
         cubeModel = glm::scale(cubeModel, glm::vec3(0.3f, 0.3f, 0.3f));
+
         cubeShader.setMat4("model", cubeModel);
 
         glActiveTexture(GL_TEXTURE0);
@@ -226,21 +281,14 @@ int main()
         glBindVertexArray(cubeVAO);
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
-        /// ************************  RANDOM CUBE THINGS **********************************
 
-        /*cubeShader.use();
+        ImGui::Begin("Esto se supone que es una ventana con imgui");
+        io.MouseDrawCursor = true;
+        ImGui::Text("Hola mundo de la programcion grafica.");
+        ImGui::End();
 
-        float scale = 1.1f;
-        cubeShader.setMat4("projection", projection);
-        cubeShader.setMat4("view", view);
-
-        cubeModel = glm::translate(cubeModel, glm::vec3(0.0f, 0.0f, 0.0f));
-        cubeModel = glm::scale(cubeModel, glm::vec3(scale, scale, scale));
-        cubeShader.setMat4("model", cubeModel);
-    
-        glBindVertexArray(cubeVAO);
-        glDrawArrays(GL_TRIANGLES, 0, 36);*/
-     
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         
         lastFrame = currentFrame;
         glfwSwapBuffers(window);
@@ -252,11 +300,15 @@ int main()
     glDeleteVertexArrays(1, &cubeVAO);
     glDeleteBuffers(1, &cubeVAO);
 
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+
     glfwTerminate();
     return 0;
 }
 
-void processInput(GLFWwindow* window)
+void processInput(GLFWwindow* window, ImGuiIO& io)
 {
     const float cameraSpeed = 2.5f * deltaTime;
     const float flagMovementSpeed = 0.01f;
@@ -296,6 +348,22 @@ void processInput(GLFWwindow* window)
     if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
     {
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
+
+    // ESCAPE THE CURSOR 
+    if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS)
+    {
+        /*glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);*/
+        io.MouseDrawCursor = false;
+        glfwSetCursorPosCallback(window, mouse_callback);
+    }
+
+
+    if (glfwGetKey(window, GLFW_KEY_U) == GLFW_PRESS)
+    {
+        io.MouseDrawCursor = true;
+        /*glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);*/
+        glfwSetCursorPosCallback(window, mouse_callback);
     }
 
     // reset camera

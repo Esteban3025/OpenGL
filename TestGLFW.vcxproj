@@ -138,10 +138,26 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="imgui\imgui.cpp" />
+    <ClCompile Include="imgui\imgui_demo.cpp" />
+    <ClCompile Include="imgui\imgui_draw.cpp" />
+    <ClCompile Include="imgui\imgui_impl_glfw.cpp" />
+    <ClCompile Include="imgui\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="imgui\imgui_tables.cpp" />
+    <ClCompile Include="imgui\imgui_widgets.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="OpenGL\lib\glad.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="imgui\imconfig.h" />
+    <ClInclude Include="imgui\imgui.h" />
+    <ClInclude Include="imgui\imgui_impl_glfw.h" />
+    <ClInclude Include="imgui\imgui_impl_opengl3.h" />
+    <ClInclude Include="imgui\imgui_impl_opengl3_loader.h" />
+    <ClInclude Include="imgui\imgui_internal.h" />
+    <ClInclude Include="imgui\imstb_rectpack.h" />
+    <ClInclude Include="imgui\imstb_textedit.h" />
+    <ClInclude Include="imgui\imstb_truetype.h" />
     <ClInclude Include="OpenGL\includes\assimp\aabb.h" />
     <ClInclude Include="OpenGL\includes\assimp\ai_assert.h" />
     <ClInclude Include="OpenGL\includes\assimp\anim.h" />
@@ -224,6 +240,15 @@
     <ClInclude Include="OpenGL\includes\assimp\XmlParser.h" />
     <ClInclude Include="OpenGL\includes\assimp\XMLTools.h" />
     <ClInclude Include="OpenGL\includes\assimp\ZipArchiveIOSystem.h" />
+    <ClInclude Include="OpenGL\includes\imconfig.h" />
+    <ClInclude Include="OpenGL\includes\imgui.h" />
+    <ClInclude Include="OpenGL\includes\imgui_impl_glfw.h" />
+    <ClInclude Include="OpenGL\includes\imgui_impl_opengl3.h" />
+    <ClInclude Include="OpenGL\includes\imgui_impl_opengl3_loader.h" />
+    <ClInclude Include="OpenGL\includes\imgui_internal.h" />
+    <ClInclude Include="OpenGL\includes\imstb_rectpack.h" />
+    <ClInclude Include="OpenGL\includes\imstb_textedit.h" />
+    <ClInclude Include="OpenGL\includes\imstb_truetype.h" />
     <ClInclude Include="OpenGL\includes\tools\CAMERA.h" />
     <ClInclude Include="OpenGL\includes\ft2build.h" />
     <ClInclude Include="OpenGL\includes\glad\glad.h" />
@@ -268,8 +293,8 @@
     <None Include="shaders\fontShader.vs" />
     <None Include="shaders\model.fs" />
     <None Include="shaders\model.vs" />
-    <None Include="shaders\floor.fs" />
-    <None Include="shaders\floor.vs" />
+    <None Include="shaders\gunShader.fs" />
+    <None Include="shaders\gunShader.vs" />
   </ItemGroup>
   <ItemGroup>
     <Font Include="fonts\ARIAL.TTF" />
