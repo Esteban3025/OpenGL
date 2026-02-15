@@ -20,6 +20,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow* window, ImGuiIO& io);
 unsigned int loadTexture(char const* path);
+void ToggleUI(GLFWwindow* window);
 
 const unsigned int SCR_WIDTH = 1920;
 const unsigned int SCR_HEIGHT = 1080;
@@ -27,9 +28,13 @@ const unsigned int SCR_HEIGHT = 1080;
 float planeSize = 40.0f;
 float flagSize = 3.0f;
 float cubeSize = 2.5f;
+float yGunRotation = 1.65f;
+bool uiMode = false;
+
 glm::vec3 camPos = glm::vec3(0.0f, 0.0f, 0.0f);
 glm::vec3 cubePos = glm::vec3(0.0f, -1.5f, 0.0f);
 glm::vec3 flagPos = glm::vec3(0.0f, 0.0f, 0.0f);
+glm::vec3 gunPos = glm::vec3(0.21f, -0.1f, -1.0f);
 Camera camera(camPos);
 
 float deltaTime = 0.0f;
@@ -67,7 +72,7 @@ int main()
     }
 
     glEnable(GL_DEPTH_TEST);
-    /*glDepthFunc(GL_LESS);*/
+    /*glDepthFunc(GL_LESS);*/   
 
     stbi_set_flip_vertically_on_load(true);
 
@@ -75,9 +80,11 @@ int main()
     Shader flagShader("shaders/flagShader.vs", "shaders/flagShader.fs");
     Shader cubeShader("shaders/cubeShader.vs", "shaders/cubeShader.fs");
     Shader gunShader("shaders/gunShader.vs", "shaders/gunShader.fs");
+    Shader myCubeShader("shaders/gunShader.vs", "shaders/gunShader.fs");
 
     Model ourModel("textures/sponza/sponza.obj");
     Model gunModel("textures/shotgun/shotgun_1.obj");
+    Model myCube("textures/car/cuboretro.obj");
     
     unsigned int cubeTexture = loadTexture("textures/wooden_crate_4.png");
 
@@ -161,6 +168,8 @@ int main()
     modelShader.use();
 
     gunShader.use();
+
+    myCubeShader.use();
     
 
     IMGUI_CHECKVERSION();
@@ -195,9 +204,11 @@ int main()
 
         glm::mat4 worldView = glm::inverse(cameraWorld);
 
+        // ***************************************** Example of make a object children of another **************************************************
         // glm::mat4 cubeWorld = cameraWorld * modelOfTheChildObject;
         // modelShaderOfTheCHild.setMat4("model", cubeWorld);
         // modelShaderOfTheCHild.setMat4("view", worldView);
+        // ***************************************** **************************************************
 
         modelShader.use();
         
@@ -239,13 +250,15 @@ int main()
 
         // render the loaded model
         glm::mat4 gunModelMatrix = glm::mat4(1.0f);
-        gunModelMatrix = glm::translate(gunModelMatrix, glm::vec3(0.4f, -0.1f, -1.0f)); // translate it down so it's at the center of the scene
-        /*gunModelMatrix = glm::scale(gunModelMatrix, glm::vec3(0.01f, 0.01f, 0.01f));*/
-        gunModelMatrix = glm::rotate(gunModelMatrix, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 1.0f));
-
+        gunModelMatrix = glm::translate(gunModelMatrix, gunPos); // translate it down so it's at the center of the scene
+        // float num = glm::radians((float)glfwGetTime()) * 2.0f; just for the rotation, work fine, print in the console to see the position
+        gunModelMatrix = glm::rotate(gunModelMatrix, yGunRotation, glm::vec3(1.0f, 0.0f, 0.0f)); // x
+        // gunModelMatrix = glm::rotate(gunModelMatrix, , glm::vec3(1.0f, 0.0f, 0.0f));
+        gunModelMatrix = glm::rotate(gunModelMatrix, 4.5f, glm::vec3(0.0f, 0.0f, 1.0f)); // z
+       
         glm::mat4 cubeWorld = cameraWorld * gunModelMatrix;
         gunShader.setMat4("model", cubeWorld);
-        gunModel.Draw(gunShader);
+        gunModel.Draw(gunShader);   
         
         
         /// ************************ FLAG LIGHTSS THINGS ******s****************************
@@ -282,8 +295,24 @@ int main()
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
 
+        // my cube for fun 
+
+        myCubeShader.use();
+
+        // view/projection transformations
+        myCubeShader.setMat4("projection", projection);
+        myCubeShader.setMat4("view", worldView);
+
+        // render the loaded model
+        glm::mat4 myCubeMatrix = glm::mat4(1.0f);
+        myCubeMatrix = glm::translate(myCubeMatrix, glm::vec3(0.0f, 0.0f, 0.5f)); // translate it down so it's at the center of the scene
+        myCubeMatrix = glm::scale(myCubeMatrix, glm::vec3(0.5f, 0.5f, 0.5f)); // translate it down so it's at the center of the scene
+    
+        gunShader.setMat4("model", myCubeMatrix);
+        myCube.Draw(myCubeShader);
+
+
         ImGui::Begin("Esto se supone que es una ventana con imgui");
-        io.MouseDrawCursor = true;
         ImGui::Text("Hola mundo de la programcion grafica.");
         ImGui::End();
 
@@ -311,7 +340,7 @@ int main()
 void processInput(GLFWwindow* window, ImGuiIO& io)
 {
     const float cameraSpeed = 2.5f * deltaTime;
-    const float flagMovementSpeed = 0.01f;
+    const float movementSpeed = 0.01f;
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
     {
@@ -351,20 +380,8 @@ void processInput(GLFWwindow* window, ImGuiIO& io)
     }
 
     // ESCAPE THE CURSOR 
-    if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS)
-    {
-        /*glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);*/
-        io.MouseDrawCursor = false;
-        glfwSetCursorPosCallback(window, mouse_callback);
-    }
-
-
-    if (glfwGetKey(window, GLFW_KEY_U) == GLFW_PRESS)
-    {
-        io.MouseDrawCursor = true;
-        /*glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);*/
-        glfwSetCursorPosCallback(window, mouse_callback);
-    }
+    if (glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS)
+        ToggleUI(window);
 
     // reset camera
 
@@ -381,33 +398,88 @@ void processInput(GLFWwindow* window, ImGuiIO& io)
 
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
     {
-        flagPos.z += flagMovementSpeed;
+        flagPos.z += movementSpeed;
     }
     if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
     {
-        flagPos.z -= flagMovementSpeed;
+        flagPos.z -= movementSpeed;
     }
     if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
     {
-        flagPos.x += flagMovementSpeed;
+        flagPos.x += movementSpeed;
     }
     if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
     {
-        flagPos.x -= flagMovementSpeed;
+        flagPos.x -= movementSpeed;
     }
     if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS)
     {
-        flagPos.y -= flagMovementSpeed;
+        flagPos.y -= movementSpeed;
     }
     if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS)
     {
-        flagPos.y += flagMovementSpeed;
+        flagPos.y += movementSpeed;
     }
     if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS)
     {
         flagPos.x = 0.0f;
         flagPos.z = 0.0f;
         flagPos.y = 0.0f;
+    }
+
+
+    // GUN MODEL TRANSLATE
+
+    if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
+    {
+        gunPos.x -= movementSpeed;
+        std::cout << "Gun Position: " << gunPos.x << " ";
+        std::cout << gunPos.y << " ";
+        std::cout << gunPos.z << "\n";
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
+    {
+        gunPos.x += movementSpeed;
+        std::cout << "Gun Position: " << gunPos.x << " ";
+        std::cout << gunPos.y << " ";
+        std::cout << gunPos.z << "\n";
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS)
+    {
+        gunPos.y -= movementSpeed;
+        std::cout << "Gun Position: " << gunPos.x << " ";
+        std::cout << gunPos.y << " ";
+        std::cout << gunPos.z << "\n";
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS)
+    {
+        gunPos.y += movementSpeed;
+        std::cout << "Gun Position: " << gunPos.x << " ";
+        std::cout << gunPos.y << " ";
+        std::cout << gunPos.z << "\n";
+    }
+
+    // Rotate the gun 
+    if (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS)
+    {
+        yGunRotation += movementSpeed;
+        std::cout << "Gun Rotation in Y: " << yGunRotation << "\n";
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS)
+    {
+        yGunRotation -= movementSpeed;
+        std::cout << "Gun Rotation in Y: " << yGunRotation << "\n";
+    }
+
+    // reset gun position
+    if (glfwGetKey(window, GLFW_KEY_0) == GLFW_PRESS)
+    {
+        yGunRotation =    1.65f;
+        gunPos = glm::vec3(0.21f, -0.1f, -1.0f);
     }
 }
 
@@ -480,4 +552,13 @@ unsigned int loadTexture(char const* path)
     return textureID;
 }
 
+void ToggleUI(GLFWwindow* window)
+{
+    uiMode = !uiMode;
+
+    if (uiMode)
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    else
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+}
 

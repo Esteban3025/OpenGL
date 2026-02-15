@@ -40,9 +40,7 @@ float LinearizeDepth(float depth)
 
 void main()
 {   
-    vec3 color = vec3(0.0f, 0.5, 0.0f);
-
-
+    vec3 color = vec3(0.0f, 0.5f, 0.0f);
     float depth = LinearizeDepth(gl_FragCoord.z) / far;
     vec3 ambient = light.ambient * texture(material.texture_diffuse1, TexCoords).rgb;
 
