@@ -144,6 +144,20 @@ int main()
      0.0f,  0.5f, 0.0f
     };
 
+    // positions all containers
+    glm::vec3 cubePositions[] = {
+        glm::vec3(0.0f,  0.0f,  0.0f),
+        glm::vec3(2.0f,  5.0f, -15.0f),
+        glm::vec3(-1.5f, -2.2f, -2.5f),
+        glm::vec3(-3.8f, -2.0f, -12.3f),
+        glm::vec3(2.4f, -0.4f, -3.5f),
+        glm::vec3(-1.7f,  3.0f, -7.5f),
+        glm::vec3(1.3f, -2.0f, -2.5f),
+        glm::vec3(1.5f,  2.0f, -2.5f),
+        glm::vec3(1.5f,  0.2f, -1.5f),
+        glm::vec3(-1.3f,  1.0f, -1.5f)
+    };
+
     unsigned int cubeVAO, cubeVBO;
     glGenVertexArrays(1, &cubeVAO);
     glGenBuffers(1, &cubeVBO);
@@ -183,7 +197,8 @@ int main()
     glEnableVertexAttribArray(0);
 
     unsigned int floorTexture = loadTexture("textures/wall.jpg");
-    unsigned int cubesTexture = loadTexture("textures/wooden_crate_4.png");
+    unsigned int cubesTexture = loadTexture("textures/container2.png");
+    unsigned int cubeSpecular = loadTexture("textures/container2_specular.png");
 
     floorShader.use();
 
@@ -221,7 +236,7 @@ int main()
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 
         glm::vec3 globalAmbient = glm::vec3(0.2f);
-        glm::vec3 cubeColor = glm::vec3(0.93f, 0.81f, 0.61f);
+        glm::vec3 cubeColor = globalAmbient;
 
         // floor/plane things
         floorShader.use();
@@ -240,15 +255,13 @@ int main()
         cubesShader.setVec3("viewPos", camera.Position);
 
         // Cube materials
-        cubesShader.setVec3("material.ambient", cubeColor);
-        cubesShader.setVec3("material.diffuse", 1.0f, 0.5f, 0.31f);
-        cubesShader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
-        cubesShader.setFloat("material.shininess", 32.0f);
-        cubesShader.setInt("material.texture1", 1);
+        cubesShader.setInt("material.diffuse", 1);
+        cubesShader.setInt("material.specular", 2);
+        cubesShader.setFloat("material.shininess", 64.0f);
 
         // Cube lights
         cubesShader.setVec3("light.ambient", globalAmbient);
-        cubesShader.setVec3("light.position", lightPos);
+        cubesShader.setVec3("light.direction", -0.2f, -1.0f, -0.3f);
         cubesShader.setVec3("light.diffuse", 0.2f, 0.2f, 0.2f);
         cubesShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
 
@@ -283,17 +296,22 @@ int main()
         glBindVertexArray(cubeVAO);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, cubesTexture);
-        glm::mat4 cubeModel = glm::mat4(1.0f);
-        cubeModel = glm::translate(cubeModel, glm::vec3(-3.0f, -1.5f, 0.0f));
-        cubeModel = glm::scale(cubeModel, glm::vec3(cubeSize, cubeSize, cubeSize));
-        cubesShader.setMat4("model", cubeModel);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
-        // second cube
-        cubeModel = glm::mat4(1.0f);
-        cubeModel = glm::translate(cubeModel, glm::vec3(3.0f, -1.5f, 0.0f));
-        cubeModel = glm::scale(cubeModel, glm::vec3(cubeSize, cubeSize, cubeSize));
-        cubesShader.setMat4("model", cubeModel);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, cubeSpecular);
+
+        // Probando la luz direccional
+
+        for (unsigned int i = 0; i < 10; i++)
+        {
+            glm::mat4 cubeModel = glm::mat4(1.0f);
+            cubeModel = glm::translate(model, cubePositions[i]);
+            cubeModel = glm::scale(cubeModel, glm::vec3(cubeSize, cubeSize, cubeSize));
+            float angle = 20.0f * i;
+            model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+            cubesShader.setMat4("model", cubeModel);
+
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
 
 
         ImGui::Begin("Esto se supone que es una ventana con imgui");
