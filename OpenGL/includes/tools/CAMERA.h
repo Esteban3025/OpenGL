@@ -101,6 +101,11 @@ public:
         Position.y = 0.0f;
     }
 
+    void showVec3(char const* name, glm::vec3 vector) {
+        std::cout << name << "\n";
+        std::cout << "(" << vector.x << " " << vector.y << " " << vector.z << ")" << "\n";
+    }
+
     // processes input received from a mouse input system. Expects the offset value in both the x and y direction.
     void ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch = true)
     {
@@ -146,6 +151,7 @@ private:
         // also re-calculate the Right and Up vector
         Right = glm::normalize(glm::cross(Front, WorldUp));  // normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
         Up = glm::normalize(glm::cross(Right, Front));
+        showVec3("Camara Position: ", Position);
     }
 };
 #endif

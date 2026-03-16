@@ -3,16 +3,18 @@ out vec4 FragColor;
 
 in vec2 texCoord;
 
-uniform sampler2D texture1;
-uniform vec3 lightColor;
+struct Material {
+	vec3 ambient;
+	vec3 diffuse;
+	vec3 specular;
+
+	sampler2D texture1;
+};
+
+uniform Material material;
 
 void main() {
-	vec3 objectColor = texture(texture1, texCoord).rgb;
-	float ambientStregth = 0.1;
-	vec3 ambient = ambientStregth * lightColor;
+	vec3 ambient = material.ambient * texture(material.texture1, texCoord).rgb;
 
-
-	vec3 result = ambient * objectColor;
-
-	FragColor = vec4(result, 1.0f);
+	FragColor = vec4(ambient, 1.0f);
 }

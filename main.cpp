@@ -24,13 +24,13 @@ unsigned int loadTexture(char const* path);
 const unsigned int SCR_WIDTH = 1920;
 const unsigned int SCR_HEIGHT = 1080;
 
-glm::vec3 camPos = glm::vec3(0.0f, 0.0f, 5.0f);
+glm::vec3 camPos = glm::vec3(1.0f, 0.0f, 28.0f);
 Camera camera(camPos);
 
 // Propierties
 float lightSize = 1.0;
 
-glm::vec3 lightPos = glm::vec3(0.0f, -1.3f, 3.0f);
+glm::vec3 lightPos = glm::vec3(8.0f, 15.3f, 15.0f);
 glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
 
 float cubeSize = 2.5f;
@@ -178,7 +178,7 @@ int main()
     glGenBuffers(1, &lightVBO);
     glBindVertexArray(lightVAO);
     glBindBuffer(GL_ARRAY_BUFFER, lightVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(lightVertices), &lightVertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), &cubeVertices, GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
@@ -186,10 +186,8 @@ int main()
     unsigned int cubesTexture = loadTexture("textures/wooden_crate_4.png");
 
     floorShader.use();
-    floorShader.setInt("texture1", 0);
 
     cubesShader.use();
-    cubesShader.setInt("texture1", 1);
 
     lightShader.use();
 
@@ -222,19 +220,37 @@ int main()
         glm::mat4 view = camera.GetViewMatrix();
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 
+        glm::vec3 globalAmbient = glm::vec3(0.2f);
+        glm::vec3 cubeColor = glm::vec3(0.93f, 0.81f, 0.61f);
+
+        // floor/plane things
         floorShader.use();
         floorShader.setMat4("view", view);
         floorShader.setMat4("projection", projection);
-        floorShader.setVec3("lightPos", lightPos);
-        floorShader.setVec3("lightColor", lightColor);
         floorShader.setVec3("viewPos", camera.Position);
 
+        // floor materials
+        floorShader.setVec3("material.ambient", globalAmbient);
+        floorShader.setInt("material.texture1", 0);
+
+        // cube propierties
         cubesShader.use();
         cubesShader.setMat4("view", view);
         cubesShader.setMat4("projection", projection);
-        cubesShader.setVec3("lightPos", lightPos);
-        cubesShader.setVec3("lightColor", lightColor);
         cubesShader.setVec3("viewPos", camera.Position);
+
+        // Cube materials
+        cubesShader.setVec3("material.ambient", cubeColor);
+        cubesShader.setVec3("material.diffuse", 1.0f, 0.5f, 0.31f);
+        cubesShader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
+        cubesShader.setFloat("material.shininess", 32.0f);
+        cubesShader.setInt("material.texture1", 1);
+
+        // Cube lights
+        cubesShader.setVec3("light.ambient", globalAmbient);
+        cubesShader.setVec3("light.position", lightPos);
+        cubesShader.setVec3("light.diffuse", 0.2f, 0.2f, 0.2f);
+        cubesShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
 
         lightShader.use();
         lightShader.setMat4("view", view);
@@ -246,7 +262,7 @@ int main()
         model = glm::translate(model, lightPos);
         model = glm::scale(model, glm::vec3(lightSize, lightSize, lightSize));
         lightShader.setMat4("model", model);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
 
         // plane things
         floorShader.use();
@@ -268,13 +284,13 @@ int main()
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, cubesTexture);
         glm::mat4 cubeModel = glm::mat4(1.0f);
-        cubeModel = glm::translate(cubeModel, glm::vec3(-3.0f, -1.3f, 0.0f));
+        cubeModel = glm::translate(cubeModel, glm::vec3(-3.0f, -1.5f, 0.0f));
         cubeModel = glm::scale(cubeModel, glm::vec3(cubeSize, cubeSize, cubeSize));
         cubesShader.setMat4("model", cubeModel);
         glDrawArrays(GL_TRIANGLES, 0, 36);
         // second cube
         cubeModel = glm::mat4(1.0f);
-        cubeModel = glm::translate(cubeModel, glm::vec3(3.0f, -1.3f, 0.0f));
+        cubeModel = glm::translate(cubeModel, glm::vec3(3.0f, -1.5f, 0.0f));
         cubeModel = glm::scale(cubeModel, glm::vec3(cubeSize, cubeSize, cubeSize));
         cubesShader.setMat4("model", cubeModel);
         glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -363,32 +379,39 @@ void processInput(GLFWwindow* window, ImGuiIO& io)
     if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
     {
         lightPos.z -= movementSpeed;
+        camera.showVec3("Light Position: ", lightPos);
     }
     if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
     {
         lightPos.z += movementSpeed;
+        camera.showVec3("Light Position: ", lightPos);
     }
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
     {
         lightPos.x += movementSpeed;
+        camera.showVec3("Light Position: ", lightPos);
     }
     if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
     {
         lightPos.x -= movementSpeed;
+        camera.showVec3("Light Position: ", lightPos);
     }
     if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS)
     {
         lightPos.y -= movementSpeed;
+        camera.showVec3("Light Position: ", lightPos);
     }
     if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS)
     {
         lightPos.y += movementSpeed;
+        camera.showVec3("Light Position: ", lightPos);
     }
     if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS)
     {
         lightPos.x = 0.0f;
         lightPos.z = 0.0f;
         lightPos.y = 0.0f;
+        camera.showVec3("Light Position: ", lightPos);
     }
 }
 
