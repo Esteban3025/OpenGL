@@ -20,22 +20,20 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow* window, ImGuiIO& io);
 unsigned int loadTexture(char const* path);
-void ToggleUI(GLFWwindow* window);
 
 const unsigned int SCR_WIDTH = 1920;
 const unsigned int SCR_HEIGHT = 1080;
 
-float planeSize = 40.0f;
-float flagSize = 3.0f;
-float cubeSize = 2.5f;
-float yGunRotation = 1.65f;
-bool uiMode = false;
-
-glm::vec3 camPos = glm::vec3(0.0f, 0.0f, 0.0f);
-glm::vec3 cubePos = glm::vec3(0.0f, -1.5f, 0.0f);
-glm::vec3 flagPos = glm::vec3(0.0f, 0.0f, 0.0f);
-glm::vec3 gunPos = glm::vec3(0.21f, -0.1f, -1.0f);
+glm::vec3 camPos = glm::vec3(0.0f, 0.0f, 5.0f);
 Camera camera(camPos);
+
+// Propierties
+float lightSize = 1.0;
+
+glm::vec3 lightPos = glm::vec3(0.0f, -1.3f, 3.0f);
+glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
+
+float cubeSize = 2.5f;
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
@@ -72,105 +70,128 @@ int main()
     }
 
     glEnable(GL_DEPTH_TEST);
-    /*glDepthFunc(GL_LESS);*/   
+    glDepthFunc(GL_LESS);  
 
     stbi_set_flip_vertically_on_load(true);
 
-    Shader modelShader("shaders/model.vs", "shaders/model.fs");
-    Shader flagShader("shaders/flagShader.vs", "shaders/flagShader.fs");
-    Shader cubeShader("shaders/cubeShader.vs", "shaders/cubeShader.fs");
-    Shader gunShader("shaders/gunShader.vs", "shaders/gunShader.fs");
-    Shader myCubeShader("shaders/gunShader.vs", "shaders/gunShader.fs");
-
-    Model ourModel("textures/sponza/sponza.obj");
-    Model gunModel("textures/shotgun/shotgun_1.obj");
-    Model myCube("textures/car/cuboretro.obj");
     
-    unsigned int cubeTexture = loadTexture("textures/wooden_crate_4.png");
+    Shader floorShader("shaders/plane.vs", "shaders/plane.fs");
+    Shader cubesShader("shaders/cube.vs", "shaders/cube.fs");
+    Shader lightShader("shaders/light.vs", "shaders/light.fs");
 
-    float vertices[] = {
-    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-     0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+    float cubeVertices[] = {
+    // positions          // normals           // texture coords
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
+         0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  0.0f,
+         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
+         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
 
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
+         0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
 
-    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-    -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+        -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+        -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
+        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
 
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
+         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+         0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
 
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  1.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
 
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,
+         0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  1.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f
     };
-  
 
-    // Flag and lights data 
-    unsigned int ligthCubeVBO, ligthCubeVAO;
-    glGenVertexArrays(1, &ligthCubeVAO);
-    glGenBuffers(1, &ligthCubeVBO);
-    glBindVertexArray(ligthCubeVAO);
+    // CAMBIA LOS SHADERS DEL PISO PORQUE LAS NORMALES ESTAN OFF
 
-    glBindBuffer(GL_ARRAY_BUFFER, ligthCubeVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    float planeVertices[] = {
+        // positions        // texture Coords
+        0.5f,  0.5f, 0.0f,   1.0f, 1.0f,
+        0.5f, -0.5f, 0.0f,   1.0f, 0.0f,
+       -0.5f,  0.5f, 0.0f,   0.0f, 1.0f,
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
+       -0.5,  0.5f, 0.0f,   0.0f, 1.0f,
+        0.5, -0.5f, 0.0f,   1.0f, 0.0f,
+       -0.5, -0.5f, 0.0f,   0.0f, 0.0f,
+    };
+ 
 
-    // cube random data
-    unsigned int cubeVBO, cubeVAO;
+    float lightVertices[] = {
+    -0.5f, -0.5f, 0.0f,
+     0.5f, -0.5f, 0.0f,
+     0.0f,  0.5f, 0.0f
+    };
+
+    unsigned int cubeVAO, cubeVBO;
     glGenVertexArrays(1, &cubeVAO);
     glGenBuffers(1, &cubeVBO);
     glBindVertexArray(cubeVAO);
-
     glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), &cubeVertices, GL_STATIC_DRAW);
+    
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+    glBindVertexArray(0);
 
+    // plane things
+    unsigned int floorVAO, floorVBO;
+    glGenVertexArrays(1, &floorVAO);
+    glGenBuffers(1, &floorVBO);
+    glBindVertexArray(floorVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, floorVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), &planeVertices, GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    glBindVertexArray(0);
+
+    unsigned int lightVAO, lightVBO;
+    glGenVertexArrays(1, &lightVAO);
+    glGenBuffers(1, &lightVBO);
+    glBindVertexArray(lightVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, lightVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(lightVertices), &lightVertices, GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
+    unsigned int floorTexture = loadTexture("textures/wall.jpg");
+    unsigned int cubesTexture = loadTexture("textures/wooden_crate_4.png");
 
-    flagShader.use();
+    floorShader.use();
+    floorShader.setInt("texture1", 0);
 
-    cubeShader.use();
-    cubeShader.setInt("texture1", 0);
+    cubesShader.use();
+    cubesShader.setInt("texture1", 1);
 
-    modelShader.use();
-
-    gunShader.use();
-
-    myCubeShader.use();
-    
+    lightShader.use();
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -196,120 +217,67 @@ int main()
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        // CALCULATION FOR MAKE A VIEW FOR PARENT-CHILD RELATIONSHIP
-        glm::mat4 cameraWorld = glm::translate(glm::mat4(1.0f), camPos);
-        glm::mat4 cameraRotation = camera.getCameraRotation();
-        cameraRotation = glm::inverse(cameraRotation);
-        cameraWorld *= cameraRotation;
-
-        glm::mat4 worldView = glm::inverse(cameraWorld);
-
-        // ***************************************** Example of make a object children of another **************************************************
-        // glm::mat4 cubeWorld = cameraWorld * modelOfTheChildObject;
-        // modelShaderOfTheCHild.setMat4("model", cubeWorld);
-        // modelShaderOfTheCHild.setMat4("view", worldView);
-        // ***************************************** **************************************************
-
-        modelShader.use();
-        
-        modelShader.setVec3("viewPos", camera.Position);
-
-        // light properties
-        modelShader.setVec3("light.position", flagPos);
-        modelShader.setVec3("light.ambient", 0.02f, 0.02f, 0.02f);
-        modelShader.setVec3("light.diffuse", 0.8f, 0.8f, 0.8f);
-        modelShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
-        modelShader.setFloat("light.constant", 1.0f);
-        modelShader.setFloat("light.linear", 0.09f);
-        modelShader.setFloat("light.quadratic", 0.032f);
-
-        // material properties
-        modelShader.setFloat("material.shininess", 32.0f);
-        modelShader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
-
-        // view/projection transformations
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-        glm::mat4 view = camera.GetViewMatrix();
-        modelShader.setMat4("projection", projection);
-        modelShader.setMat4("view", view);
-
-        // render the loaded model
+        // set uniforms
         glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, -1.0f, 0.0f)); // translate it down so it's at the center of the scene
-        model = glm::scale(model, glm::vec3(0.01f, 0.01f, 0.01f));
-        modelShader.setMat4("model", model);
-        ourModel.Draw(modelShader);
+        glm::mat4 view = camera.GetViewMatrix();
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 
-        // ************************* GUN MODEL  *******************************************
+        floorShader.use();
+        floorShader.setMat4("view", view);
+        floorShader.setMat4("projection", projection);
+        floorShader.setVec3("lightPos", lightPos);
+        floorShader.setVec3("lightColor", lightColor);
+        floorShader.setVec3("viewPos", camera.Position);
 
-        gunShader.use();
+        cubesShader.use();
+        cubesShader.setMat4("view", view);
+        cubesShader.setMat4("projection", projection);
+        cubesShader.setVec3("lightPos", lightPos);
+        cubesShader.setVec3("lightColor", lightColor);
+        cubesShader.setVec3("viewPos", camera.Position);
 
-        // view/projection transformations
-        gunShader.setMat4("projection", projection);
-        gunShader.setMat4("view", worldView);
+        lightShader.use();
+        lightShader.setMat4("view", view);
+        lightShader.setMat4("projection", projection);
+        lightShader.setVec3("lightColor", lightColor);
 
-        // render the loaded model
-        glm::mat4 gunModelMatrix = glm::mat4(1.0f);
-        gunModelMatrix = glm::translate(gunModelMatrix, gunPos); // translate it down so it's at the center of the scene
-        // float num = glm::radians((float)glfwGetTime()) * 2.0f; just for the rotation, work fine, print in the console to see the position
-        gunModelMatrix = glm::rotate(gunModelMatrix, yGunRotation, glm::vec3(1.0f, 0.0f, 0.0f)); // x
-        // gunModelMatrix = glm::rotate(gunModelMatrix, , glm::vec3(1.0f, 0.0f, 0.0f));
-        gunModelMatrix = glm::rotate(gunModelMatrix, 4.5f, glm::vec3(0.0f, 0.0f, 1.0f)); // z
-       
-        glm::mat4 cubeWorld = cameraWorld * gunModelMatrix;
-        gunShader.setMat4("model", cubeWorld);
-        gunModel.Draw(gunShader);   
-        
-        
-        /// ************************ FLAG LIGHTSS THINGS ******s****************************
-        flagShader.use();
-        flagShader.setMat4("projection", projection);
-        flagShader.setMat4("view", view);
+        // lights things
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, lightPos);
+        model = glm::scale(model, glm::vec3(lightSize, lightSize, lightSize));
+        lightShader.setMat4("model", model);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
 
-        glm::mat4 flagModel = glm::mat4(1.0f);
-        flagModel = glm::translate(flagModel, flagPos);
-        flagModel = glm::scale(flagModel, glm::vec3(0.1f, 0.1f, 0.1f));
-        flagShader.setMat4("model", flagModel);
-
-        glBindVertexArray(ligthCubeVAO);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
-
-
-        /// ************************  RANDOM CUBE THINGS **********************************
-
-        cubeShader.use();
-
-        cubeShader.setMat4("projection", projection);
-        cubeShader.setMat4("view", view);
-
-        glm::mat4 cubeModel = glm::mat4(1.0f);
-        cubeModel = glm::translate(cubeModel, glm::vec3(0.0f, 0.0f, 0.0f));
-        cubeModel = glm::scale(cubeModel, glm::vec3(0.3f, 0.3f, 0.3f));
-
-        cubeShader.setMat4("model", cubeModel);
-
+        // plane things
+        floorShader.use();
+        glBindVertexArray(floorVAO);
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, cubeTexture);
+        glBindTexture(GL_TEXTURE_2D, floorTexture);
+        glm::mat4 floorModel = glm::mat4(1.0f);
+        floorModel = glm::translate(floorModel, glm::vec3(0.0f, -3.0f, 0.0f));
+        floorModel = glm::rotate(floorModel, glm::radians(90.0f), glm::vec3(1.0, 0.0, 0.0));
+        float planeSize = 40.0f;
+        floorModel = glm::scale(floorModel, glm::vec3(planeSize, planeSize, planeSize));
+        floorShader.setMat4("model", floorModel);
+        glDrawArrays(GL_TRIANGLES, 0, 10);
+        glBindVertexArray(0);
 
+        // cubes things
+        cubesShader.use();
         glBindVertexArray(cubeVAO);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, cubesTexture);
+        glm::mat4 cubeModel = glm::mat4(1.0f);
+        cubeModel = glm::translate(cubeModel, glm::vec3(-3.0f, -1.3f, 0.0f));
+        cubeModel = glm::scale(cubeModel, glm::vec3(cubeSize, cubeSize, cubeSize));
+        cubesShader.setMat4("model", cubeModel);
         glDrawArrays(GL_TRIANGLES, 0, 36);
-
-
-        // my cube for fun 
-
-        myCubeShader.use();
-
-        // view/projection transformations
-        myCubeShader.setMat4("projection", projection);
-        myCubeShader.setMat4("view", worldView);
-
-        // render the loaded model
-        glm::mat4 myCubeMatrix = glm::mat4(1.0f);
-        myCubeMatrix = glm::translate(myCubeMatrix, glm::vec3(0.0f, 0.0f, 0.5f)); // translate it down so it's at the center of the scene
-        myCubeMatrix = glm::scale(myCubeMatrix, glm::vec3(0.5f, 0.5f, 0.5f)); // translate it down so it's at the center of the scene
-    
-        gunShader.setMat4("model", myCubeMatrix);
-        myCube.Draw(myCubeShader);
+        // second cube
+        cubeModel = glm::mat4(1.0f);
+        cubeModel = glm::translate(cubeModel, glm::vec3(3.0f, -1.3f, 0.0f));
+        cubeModel = glm::scale(cubeModel, glm::vec3(cubeSize, cubeSize, cubeSize));
+        cubesShader.setMat4("model", cubeModel);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
 
 
         ImGui::Begin("Esto se supone que es una ventana con imgui");
@@ -324,10 +292,10 @@ int main()
         glfwPollEvents();
     }
 
-    glDeleteVertexArrays(1, &ligthCubeVAO);
-    glDeleteBuffers(1, &ligthCubeVBO);
+    glDeleteVertexArrays(1, &floorVAO);
+    glDeleteVertexArrays(1, &floorVBO);
     glDeleteVertexArrays(1, &cubeVAO);
-    glDeleteBuffers(1, &cubeVAO);
+    glDeleteVertexArrays(1, &cubeVBO);
 
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
@@ -340,7 +308,7 @@ int main()
 void processInput(GLFWwindow* window, ImGuiIO& io)
 {
     const float cameraSpeed = 2.5f * deltaTime;
-    const float movementSpeed = 0.01f;
+    const float movementSpeed = sin(0.009f);
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
     {
@@ -379,10 +347,6 @@ void processInput(GLFWwindow* window, ImGuiIO& io)
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
 
-    // ESCAPE THE CURSOR 
-    if (glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS)
-        ToggleUI(window);
-
     // reset camera
 
     if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS)
@@ -396,90 +360,35 @@ void processInput(GLFWwindow* window, ImGuiIO& io)
 
     // flag/Light movement
 
-    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
-    {
-        flagPos.z += movementSpeed;
-    }
-    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
-    {
-        flagPos.z -= movementSpeed;
-    }
     if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
     {
-        flagPos.x += movementSpeed;
+        lightPos.z -= movementSpeed;
     }
     if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
     {
-        flagPos.x -= movementSpeed;
+        lightPos.z += movementSpeed;
+    }
+    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+    {
+        lightPos.x += movementSpeed;
+    }
+    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+    {
+        lightPos.x -= movementSpeed;
     }
     if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS)
     {
-        flagPos.y -= movementSpeed;
+        lightPos.y -= movementSpeed;
     }
     if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS)
     {
-        flagPos.y += movementSpeed;
+        lightPos.y += movementSpeed;
     }
     if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS)
     {
-        flagPos.x = 0.0f;
-        flagPos.z = 0.0f;
-        flagPos.y = 0.0f;
-    }
-
-
-    // GUN MODEL TRANSLATE
-
-    if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
-    {
-        gunPos.x -= movementSpeed;
-        std::cout << "Gun Position: " << gunPos.x << " ";
-        std::cout << gunPos.y << " ";
-        std::cout << gunPos.z << "\n";
-    }
-
-    if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
-    {
-        gunPos.x += movementSpeed;
-        std::cout << "Gun Position: " << gunPos.x << " ";
-        std::cout << gunPos.y << " ";
-        std::cout << gunPos.z << "\n";
-    }
-
-    if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS)
-    {
-        gunPos.y -= movementSpeed;
-        std::cout << "Gun Position: " << gunPos.x << " ";
-        std::cout << gunPos.y << " ";
-        std::cout << gunPos.z << "\n";
-    }
-
-    if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS)
-    {
-        gunPos.y += movementSpeed;
-        std::cout << "Gun Position: " << gunPos.x << " ";
-        std::cout << gunPos.y << " ";
-        std::cout << gunPos.z << "\n";
-    }
-
-    // Rotate the gun 
-    if (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS)
-    {
-        yGunRotation += movementSpeed;
-        std::cout << "Gun Rotation in Y: " << yGunRotation << "\n";
-    }
-
-    if (glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS)
-    {
-        yGunRotation -= movementSpeed;
-        std::cout << "Gun Rotation in Y: " << yGunRotation << "\n";
-    }
-
-    // reset gun position
-    if (glfwGetKey(window, GLFW_KEY_0) == GLFW_PRESS)
-    {
-        yGunRotation =    1.65f;
-        gunPos = glm::vec3(0.21f, -0.1f, -1.0f);
+        lightPos.x = 0.0f;
+        lightPos.z = 0.0f;
+        lightPos.y = 0.0f;
     }
 }
 
@@ -550,15 +459,5 @@ unsigned int loadTexture(char const* path)
     }
     
     return textureID;
-}
-
-void ToggleUI(GLFWwindow* window)
-{
-    uiMode = !uiMode;
-
-    if (uiMode)
-        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-    else
-        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 }
 

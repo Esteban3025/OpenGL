@@ -285,16 +285,14 @@
     <None Include="OpenGL\includes\assimp\SmoothingGroups.inl" />
     <None Include="OpenGL\includes\assimp\vector2.inl" />
     <None Include="OpenGL\includes\assimp\vector3.inl" />
-    <None Include="shaders\cubeShader.fs" />
-    <None Include="shaders\cubeShader.vs" />
-    <None Include="shaders\flagShader.fs" />
-    <None Include="shaders\flagShader.vs" />
-    <None Include="shaders\fontShader.fs" />
-    <None Include="shaders\fontShader.vs" />
+    <None Include="shaders\cube.fs" />
+    <None Include="shaders\cube.vs" />
+    <None Include="shaders\light.fs" />
+    <None Include="shaders\light.vs" />
     <None Include="shaders\model.fs" />
     <None Include="shaders\model.vs" />
-    <None Include="shaders\gunShader.fs" />
-    <None Include="shaders\gunShader.vs" />
+    <None Include="shaders\plane.fs" />
+    <None Include="shaders\plane.vs" />
   </ItemGroup>
   <ItemGroup>
     <Font Include="fonts\ARIAL.TTF" />

@@ -407,14 +407,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />
-    <None Include="shaders\cubeShader.fs" />
-    <None Include="shaders\cubeShader.vs" />
-    <None Include="shaders\flagShader.fs" />
-    <None Include="shaders\flagShader.vs" />
-    <None Include="shaders\fontShader.fs" />
-    <None Include="shaders\fontShader.vs" />
-    <None Include="shaders\gunShader.fs" />
-    <None Include="shaders\gunShader.vs" />
     <None Include="OpenGL\includes\assimp\color4.inl">
       <Filter>Archivos de encabezado</Filter>
     </None>
@@ -439,9 +431,15 @@
     <None Include="OpenGL\includes\assimp\vector3.inl">
       <Filter>Archivos de encabezado</Filter>
     </None>
-    <None Include="shaders\model.vs" />
-    <None Include="shaders\model.fs" />
     <None Include="assimp-vc143-mtd.dll" />
+    <None Include="shaders\cube.fs" />
+    <None Include="shaders\cube.vs" />
+    <None Include="shaders\model.fs" />
+    <None Include="shaders\model.vs" />
+    <None Include="shaders\light.fs" />
+    <None Include="shaders\light.vs" />
+    <None Include="shaders\plane.vs" />
+    <None Include="shaders\plane.fs" />
   </ItemGroup>
   <ItemGroup>
     <Font Include="fonts\ARIAL.TTF" />
