@@ -20,18 +20,25 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow* window, ImGuiIO& io);
 unsigned int loadTexture(char const* path);
+void setupMaterials(Shader shader, unsigned int diffuse, unsigned int specular, float shinness);
+void initView(Shader shader, glm::mat4 view, glm::mat4 projection, glm::vec3 camPosition);
+void setupLights(Shader shader, glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular, glm::vec3 lightPosition, glm::vec3 lightDirection, float outerCutOff,
+    float cutOff, float constant, float linear, float quadratic);
 
 const unsigned int SCR_WIDTH = 1920;
 const unsigned int SCR_HEIGHT = 1080;
 
-glm::vec3 camPos = glm::vec3(1.0f, 0.0f, 28.0f);
+glm::vec3 camPos = glm::vec3(1.0f, 0.0f, 10.0f);
 Camera camera(camPos);
 
 // Propierties
 float lightSize = 1.0;
 
 glm::vec3 lightPos = glm::vec3(8.0f, 15.3f, 15.0f);
+glm::vec3 lightDir = glm::vec3(-0.2f, -1.0f, -0.3f);
 glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
+
+glm::vec3 globalAmbient = glm::vec3(0.3f);
 
 float cubeSize = 2.5f;
 
@@ -127,14 +134,14 @@ int main()
     // CAMBIA LOS SHADERS DEL PISO PORQUE LAS NORMALES ESTAN OFF
 
     float planeVertices[] = {
-        // positions        // texture Coords
-        0.5f,  0.5f, 0.0f,   1.0f, 1.0f,
-        0.5f, -0.5f, 0.0f,   1.0f, 0.0f,
-       -0.5f,  0.5f, 0.0f,   0.0f, 1.0f,
+        // positions        // normals         // texture Coords
+        0.5f,  0.5f, 0.0f,  0.0f, 1.0f, 0.0f,        1.0f, 1.0f,
+        0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,        1.0f, 0.0f,
+       -0.5f,  0.5f, 0.0f,  0.0f, 1.0f, 0.0f,        0.0f, 1.0f,
 
-       -0.5,  0.5f, 0.0f,   0.0f, 1.0f,
-        0.5, -0.5f, 0.0f,   1.0f, 0.0f,
-       -0.5, -0.5f, 0.0f,   0.0f, 0.0f,
+       -0.5,  0.5f, 0.0f,   0.0f, 1.0f, 0.0f,        0.0f, 1.0f,
+        0.5, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,        1.0f, 0.0f,
+       -0.5, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,        0.0f, 0.0f,
     };
  
 
@@ -146,16 +153,17 @@ int main()
 
     // positions all containers
     glm::vec3 cubePositions[] = {
-        glm::vec3(0.0f,  0.0f,  0.0f),
-        glm::vec3(2.0f,  5.0f, -15.0f),
-        glm::vec3(-1.5f, -2.2f, -2.5f),
-        glm::vec3(-3.8f, -2.0f, -12.3f),
-        glm::vec3(2.4f, -0.4f, -3.5f),
-        glm::vec3(-1.7f,  3.0f, -7.5f),
-        glm::vec3(1.3f, -2.0f, -2.5f),
-        glm::vec3(1.5f,  2.0f, -2.5f),
-        glm::vec3(1.5f,  0.2f, -1.5f),
-        glm::vec3(-1.3f,  1.0f, -1.5f)
+        glm::vec3(0.0, -1.5, 5.0f),
+        glm::vec3(5.0, -1.5, 5.0f),
+        glm::vec3(10.0, -1.5, 5.0f),
+
+        glm::vec3(0.0, -1.5, 0.0f),
+        glm::vec3(5.0, -1.5, 0.0f),
+        glm::vec3(10.0, -1.5, 0.0f),
+    
+        glm::vec3(0.0, -1.5, -5.0f),
+        glm::vec3(5.0, -1.5, -5.0f),
+        glm::vec3(10.0, -1.5, -5.0f),
     };
 
     unsigned int cubeVAO, cubeVBO;
@@ -182,9 +190,11 @@ int main()
     glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), &planeVertices, GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
     glBindVertexArray(0);
 
     unsigned int lightVAO, lightVBO;
@@ -197,6 +207,7 @@ int main()
     glEnableVertexAttribArray(0);
 
     unsigned int floorTexture = loadTexture("textures/wall.jpg");
+    unsigned int flashLightTexture = loadTexture("textures/flashlightpattern.png");
     unsigned int cubesTexture = loadTexture("textures/container2.png");
     unsigned int cubeSpecular = loadTexture("textures/container2_specular.png");
 
@@ -235,35 +246,19 @@ int main()
         glm::mat4 view = camera.GetViewMatrix();
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 
-        glm::vec3 globalAmbient = glm::vec3(0.2f);
         glm::vec3 cubeColor = globalAmbient;
 
         // floor/plane things
         floorShader.use();
-        floorShader.setMat4("view", view);
-        floorShader.setMat4("projection", projection);
-        floorShader.setVec3("viewPos", camera.Position);
-
-        // floor materials
-        floorShader.setVec3("material.ambient", globalAmbient);
-        floorShader.setInt("material.texture1", 0);
+        initView(floorShader, view, projection, camera.Position);
+        setupMaterials(floorShader, 0, 0, 32.0f);
+        setupLights(floorShader, globalAmbient, glm::vec3(0.8f, 0.8f, 0.8f), glm::vec3(1.0f, 1.0f, 1.0f), camera.Position, camera.Front, 17.5f, 12.5f, 1.0f, 0.07f, 0.017f);
 
         // cube propierties
         cubesShader.use();
-        cubesShader.setMat4("view", view);
-        cubesShader.setMat4("projection", projection);
-        cubesShader.setVec3("viewPos", camera.Position);
-
-        // Cube materials
-        cubesShader.setInt("material.diffuse", 1);
-        cubesShader.setInt("material.specular", 2);
-        cubesShader.setFloat("material.shininess", 64.0f);
-
-        // Cube lights
-        cubesShader.setVec3("light.ambient", globalAmbient);
-        cubesShader.setVec3("light.direction", -0.2f, -1.0f, -0.3f);
-        cubesShader.setVec3("light.diffuse", 0.2f, 0.2f, 0.2f);
-        cubesShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+        initView(cubesShader, view, projection, camera.Position);
+        setupMaterials(cubesShader, 2, 3, 32.0f);
+        setupLights(cubesShader, globalAmbient, glm::vec3(0.8f, 0.8f, 0.8f), glm::vec3(1.0f, 1.0f, 1.0f), camera.Position, camera.Front, 17.5f, 12.5f, 1.0f, 0.07f, 0.017f);
 
         lightShader.use();
         lightShader.setMat4("view", view);
@@ -282,6 +277,9 @@ int main()
         glBindVertexArray(floorVAO);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, floorTexture);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, flashLightTexture);
+        floorShader.setInt("material.flashLight", 1);
         glm::mat4 floorModel = glm::mat4(1.0f);
         floorModel = glm::translate(floorModel, glm::vec3(0.0f, -3.0f, 0.0f));
         floorModel = glm::rotate(floorModel, glm::radians(90.0f), glm::vec3(1.0, 0.0, 0.0));
@@ -294,20 +292,15 @@ int main()
         // cubes things
         cubesShader.use();
         glBindVertexArray(cubeVAO);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, cubesTexture);
         glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, cubesTexture);
+        glActiveTexture(GL_TEXTURE3);
         glBindTexture(GL_TEXTURE_2D, cubeSpecular);
 
-        // Probando la luz direccional
-
-        for (unsigned int i = 0; i < 10; i++)
-        {
+        for (unsigned int i = 0; i < 9; i++) {
             glm::mat4 cubeModel = glm::mat4(1.0f);
-            cubeModel = glm::translate(model, cubePositions[i]);
+            cubeModel = glm::translate(cubeModel, cubePositions[i]);
             cubeModel = glm::scale(cubeModel, glm::vec3(cubeSize, cubeSize, cubeSize));
-            float angle = 20.0f * i;
-            model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
             cubesShader.setMat4("model", cubeModel);
 
             glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -337,6 +330,37 @@ int main()
 
     glfwTerminate();
     return 0;
+}
+
+void setupMaterials(Shader shader, unsigned int diffuse, unsigned int specular, float shinness) 
+{
+    shader.setInt("material.diffuse", diffuse);
+    shader.setInt("material.specular", specular);
+    shader.setFloat("material.shininess", shinness);
+}
+
+void initView(Shader shader, glm::mat4 view, glm::mat4 projection, glm::vec3 camPosition)
+{
+   shader.setMat4("view", view);
+   shader.setMat4("projection", projection);
+   shader.setVec3("viewPos", camPosition);
+}
+
+void setupLights(Shader shader, glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular, glm::vec3 lightPosition, glm::vec3 lightDirection, float outerCutOff,
+    float cutOff, float constant, float linear, float quadratic)
+{
+
+    shader.setVec3("light.ambient", ambient);
+    shader.setVec3("light.diffuse", diffuse);
+    shader.setVec3("light.specular", specular);
+    shader.setVec3("light.position", lightPosition);
+    shader.setVec3("light.direction", lightDirection);
+
+    shader.setFloat("light.outerCutOff", glm::cos(glm::radians(outerCutOff)));
+    shader.setFloat("light.cutOff", glm::cos(glm::radians(cutOff)));
+    shader.setFloat("light.constant", constant);
+    shader.setFloat("light.linear", linear);
+    shader.setFloat("light.quadratic", quadratic);
 }
 
 void processInput(GLFWwindow* window, ImGuiIO& io)
