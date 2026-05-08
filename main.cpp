@@ -14,16 +14,49 @@
 #include <tools/model.h>
 
 #include <iostream>
+#include <string>
+
+struct lightProp {
+    glm::vec3 ambient;
+    glm::vec3 diffuse;
+    glm::vec3 specular;
+    glm::vec3 position;
+    glm::vec3 direction;
+
+    glm::vec3 exampleColor;
+
+    float outerCutOff;
+    float cutoff;
+    float constants;
+    float linear;
+    float quadratic;
+
+    friend std::ostream& operator<<(std::ostream& os, const lightProp& p) {
+        os << "ambient: " << p.ambient.x << " " << p.ambient.y << " " << p.ambient.z;
+        return os;
+    }
+    
+} directionalLights, pointLights, spotLights;
+
+struct materialsProp {
+    int diffuse;
+    int specular;
+
+    float shinness;
+} floorMaterials, cubesMaterials;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow* window, ImGuiIO& io);
 unsigned int loadTexture(char const* path);
-void setupMaterials(Shader shader, unsigned int diffuse, unsigned int specular, float shinness);
-void initView(Shader shader, glm::mat4 view, glm::mat4 projection, glm::vec3 camPosition);
-void setupLights(Shader shader, glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular, glm::vec3 lightPosition, glm::vec3 lightDirection, float outerCutOff,
-    float cutOff, float constant, float linear, float quadratic);
+void setUniforms();
+void setupLights(Shader& shader);
+void spotLight(Shader& shader, const lightProp& light);
+void pointlight(Shader& shader, const lightProp& light, int& i);
+void directionalLight(Shader& shader, const lightProp& light);
+void initView(Shader& shader, glm::mat4 view, glm::mat4 projection);
+void setupMaterials(Shader shader, materialsProp materials);
 
 const unsigned int SCR_WIDTH = 1920;
 const unsigned int SCR_HEIGHT = 1080;
@@ -31,14 +64,23 @@ const unsigned int SCR_HEIGHT = 1080;
 glm::vec3 camPos = glm::vec3(1.0f, 0.0f, 10.0f);
 Camera camera(camPos);
 
+glm::vec3 globalAmbient = glm::vec3(0.05);
+
 // Propierties
 float lightSize = 1.0;
 
 glm::vec3 lightPos = glm::vec3(8.0f, 15.3f, 15.0f);
 glm::vec3 lightDir = glm::vec3(-0.2f, -1.0f, -0.3f);
-glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
+glm::vec3 lightColor = globalAmbient;
 
-glm::vec3 globalAmbient = glm::vec3(0.3f);
+
+
+glm::vec3 pointLightPositions[] = {
+        glm::vec3(0.0f,  0.5f,  20.0f),
+        glm::vec3(20.5f, 0.5f, -4.0f),
+        glm::vec3(-4.0f,  0.5f, -12.0f),
+        glm::vec3(-20.0f,  0.5f, -3.0f)
+};
 
 float cubeSize = 2.5f;
 
@@ -81,10 +123,6 @@ int main()
 
     stbi_set_flip_vertically_on_load(true);
 
-    
-    Shader floorShader("shaders/plane.vs", "shaders/plane.fs");
-    Shader cubesShader("shaders/cube.vs", "shaders/cube.fs");
-    Shader lightShader("shaders/light.vs", "shaders/light.fs");
 
     float cubeVertices[] = {
     // positions          // normals           // texture coords
@@ -166,6 +204,10 @@ int main()
         glm::vec3(10.0, -1.5, -5.0f),
     };
 
+    Shader cubesShader("shaders/cube.vs", "shaders/cube.fs");
+    Shader floorShader("shaders/plane.vs", "shaders/plane.fs");
+    Shader lightShader("shaders/light.vs", "shaders/light.fs");
+
     unsigned int cubeVAO, cubeVBO;
     glGenVertexArrays(1, &cubeVAO);
     glGenBuffers(1, &cubeVBO);
@@ -206,7 +248,7 @@ int main()
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
-    unsigned int floorTexture = loadTexture("textures/wall.jpg");
+    unsigned int floorTexture = loadTexture("textures/tiles_floor_1.png");
     unsigned int flashLightTexture = loadTexture("textures/flashlightpattern.png");
     unsigned int cubesTexture = loadTexture("textures/container2.png");
     unsigned int cubeSpecular = loadTexture("textures/container2_specular.png");
@@ -250,15 +292,14 @@ int main()
 
         // floor/plane things
         floorShader.use();
-        initView(floorShader, view, projection, camera.Position);
-        setupMaterials(floorShader, 0, 0, 32.0f);
-        setupLights(floorShader, globalAmbient, glm::vec3(0.8f, 0.8f, 0.8f), glm::vec3(1.0f, 1.0f, 1.0f), camera.Position, camera.Front, 17.5f, 12.5f, 1.0f, 0.07f, 0.017f);
+        initView(floorShader, view, projection);
+        setupMaterials(floorShader, floorMaterials);
 
         // cube propierties
         cubesShader.use();
-        initView(cubesShader, view, projection, camera.Position);
-        setupMaterials(cubesShader, 2, 3, 32.0f);
-        setupLights(cubesShader, globalAmbient, glm::vec3(0.8f, 0.8f, 0.8f), glm::vec3(1.0f, 1.0f, 1.0f), camera.Position, camera.Front, 17.5f, 12.5f, 1.0f, 0.07f, 0.017f);
+        initView(cubesShader, view, projection);
+        setupMaterials(cubesShader, cubesMaterials);
+        
 
         lightShader.use();
         lightShader.setMat4("view", view);
@@ -266,11 +307,15 @@ int main()
         lightShader.setVec3("lightColor", lightColor);
 
         // lights things
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, lightPos);
-        model = glm::scale(model, glm::vec3(lightSize, lightSize, lightSize));
-        lightShader.setMat4("model", model);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+
+        for (int i =0; i < 4; i++) 
+        {
+            model = glm::mat4(1.0f);
+            model = glm::translate(model, pointLightPositions[i]);
+            model = glm::scale(model, glm::vec3(lightSize, lightSize, lightSize));
+            lightShader.setMat4("model", model);
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
 
         // plane things
         floorShader.use();
@@ -279,6 +324,7 @@ int main()
         glBindTexture(GL_TEXTURE_2D, floorTexture);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, flashLightTexture);
+        setupLights(floorShader);
         floorShader.setInt("material.flashLight", 1);
         glm::mat4 floorModel = glm::mat4(1.0f);
         floorModel = glm::translate(floorModel, glm::vec3(0.0f, -3.0f, 0.0f));
@@ -297,16 +343,24 @@ int main()
         glActiveTexture(GL_TEXTURE3);
         glBindTexture(GL_TEXTURE_2D, cubeSpecular);
 
-        for (unsigned int i = 0; i < 9; i++) {
+        setupLights(cubesShader);
+
+        /*for (unsigned int i = 0; i < 9; i++) {
             glm::mat4 cubeModel = glm::mat4(1.0f);
             cubeModel = glm::translate(cubeModel, cubePositions[i]);
             cubeModel = glm::scale(cubeModel, glm::vec3(cubeSize, cubeSize, cubeSize));
             cubesShader.setMat4("model", cubeModel);
 
             glDrawArrays(GL_TRIANGLES, 0, 36);
-        }
+        }*/
+         
+        glm::mat4 cubeModel = glm::mat4(1.0f);
+        cubeModel = glm::translate(cubeModel, glm::vec3(0.0f, -1.5, 0.0f));
+        cubeModel = glm::scale(cubeModel, glm::vec3(cubeSize, cubeSize, cubeSize));
+        cubesShader.setMat4("model", cubeModel);
 
-
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+    
         ImGui::Begin("Esto se supone que es una ventana con imgui");
         ImGui::Text("Hola mundo de la programcion grafica.");
         ImGui::End();
@@ -332,35 +386,119 @@ int main()
     return 0;
 }
 
-void setupMaterials(Shader shader, unsigned int diffuse, unsigned int specular, float shinness) 
+void setupMaterials(Shader shader, materialsProp materials) 
 {
-    shader.setInt("material.diffuse", diffuse);
-    shader.setInt("material.specular", specular);
-    shader.setFloat("material.shininess", shinness);
+    shader.use();
+    shader.setInt("material.diffuse", materials.diffuse);
+    shader.setInt("material.specular", materials.specular);
+    shader.setFloat("material.shininess", materials.shinness);
 }
 
-void initView(Shader shader, glm::mat4 view, glm::mat4 projection, glm::vec3 camPosition)
+void initView(Shader& shader, glm::mat4 view, glm::mat4 projection)
 {
+   shader.use();
    shader.setMat4("view", view);
    shader.setMat4("projection", projection);
-   shader.setVec3("viewPos", camPosition);
+   shader.setVec3("viewPos", camera.Position);
 }
 
-void setupLights(Shader shader, glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular, glm::vec3 lightPosition, glm::vec3 lightDirection, float outerCutOff,
-    float cutOff, float constant, float linear, float quadratic)
+
+void directionalLight(Shader& shader, const lightProp& light)
 {
+    shader.use();
+    shader.setVec3("dirLight.ambient", light.ambient);
+    shader.setVec3("dirLight.diffuse", light.diffuse);
+    shader.setVec3("dirLight.specular", light.specular);
+    shader.setVec3("dirLight.direction", light.direction);
+}
 
-    shader.setVec3("light.ambient", ambient);
-    shader.setVec3("light.diffuse", diffuse);
-    shader.setVec3("light.specular", specular);
-    shader.setVec3("light.position", lightPosition);
-    shader.setVec3("light.direction", lightDirection);
+void spotLight(Shader& shader, const lightProp& light)
+{
+    shader.use();
 
-    shader.setFloat("light.outerCutOff", glm::cos(glm::radians(outerCutOff)));
-    shader.setFloat("light.cutOff", glm::cos(glm::radians(cutOff)));
-    shader.setFloat("light.constant", constant);
-    shader.setFloat("light.linear", linear);
-    shader.setFloat("light.quadratic", quadratic);
+    shader.setVec3("spotLight.position", light.position);
+    shader.setVec3("spotLight.direction", light.direction);
+    shader.setVec3("spotLight.ambient", light.ambient);
+    shader.setVec3("spotLight.diffuse", light.diffuse);
+    shader.setVec3("spotLight.specular", light.specular);
+    shader.setFloat("spotLight.constant", light.constants);
+    shader.setFloat("spotLight.linear", light.linear);
+    shader.setFloat("spotLight.quadratic", light.quadratic);
+    shader.setFloat("spotLight.cutOff", glm::cos(glm::radians(light.cutoff)));
+    shader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(light.outerCutOff)));
+
+    shader.setVec3("spotLight.colorExample", light.exampleColor);
+}
+
+void pointlight(Shader& shader, const lightProp& light, int& i)
+{
+    std::string index = std::to_string(i);
+
+    shader.use();
+    shader.setVec3("pointLights[" + index + "].position", pointLightPositions[i]);
+    shader.setVec3("pointLights[" + index + "].ambient", light.ambient);
+    shader.setVec3("pointLights[" + index + "].diffuse", light.diffuse);
+    shader.setVec3("pointLights[" + index + "].specular", light.specular);
+    shader.setFloat("pointLights[" + index + "].constant", light.constants);
+    shader.setFloat("pointLights[" + index + "].linear", light.linear);
+    shader.setFloat("pointLights[" + index + "].quadratic", light.quadratic);
+   
+}
+
+void setupLights(Shader& shader) 
+{
+    setUniforms();
+    shader.use();
+
+    directionalLight(shader, directionalLights);
+    spotLight(shader, spotLights);
+
+    /*for (int i = 0; i < 4; i++)
+    {
+        pointlight(shader, pointLights, i);
+    }*/
+}
+
+void setUniforms()
+{
+    directionalLights.ambient = globalAmbient;
+    directionalLights.diffuse = glm::vec3(0.4f);
+    directionalLights.specular = glm::vec3(0.5f);
+    directionalLights.position = camera.Position;
+    directionalLights.direction = lightDir;
+    
+    pointLights.ambient = glm::vec3(1.0f, 0.0f, 0.0f);
+    pointLights.diffuse = glm::vec3(1.0f);
+    pointLights.specular = glm::vec3(1.0f);
+    //pointLights.position = camera.Position;
+    // pointLights position se agrega dentro de su funcion 
+    pointLights.direction = glm::vec3(-0.2f, -1.0f, -0.3f);
+    pointLights.outerCutOff = 20.5f; // 17.5f
+    pointLights.cutoff = 15.5f; // 12.5f
+    pointLights.constants = 1.0f;
+    pointLights.linear = 0.09f;
+    pointLights.quadratic = 0.032f;
+
+    spotLights.exampleColor = glm::vec3(0.0f, 0.0, 1.0f); // Esto fue para testear se puede borrar sin problemas (creo)
+
+    spotLights.ambient = globalAmbient;
+    spotLights.diffuse = glm::vec3(1.0f);
+    spotLights.specular = glm::vec3(1.0f);
+    spotLights.position = camera.Position;
+    spotLights.direction = camera.Front;
+    spotLights.outerCutOff = 20.5f; // 17.5f
+    spotLights.cutoff = 15.5f; // 12.5f
+    spotLights.constants = 1.0f;
+    spotLights.linear = 0.07f;
+    spotLights.quadratic = 0.032f;
+
+    floorMaterials.diffuse = 0;
+    floorMaterials.specular = 0;
+    floorMaterials.shinness = 32.0f;
+
+    cubesMaterials.diffuse = 2;
+    cubesMaterials.specular = 3;
+    cubesMaterials.shinness = 32.0f;
 }
 
 void processInput(GLFWwindow* window, ImGuiIO& io)
