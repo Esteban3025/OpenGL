@@ -16,6 +16,8 @@
 #include <iostream>
 #include <string>
 
+#define NR_POINT_LIGHTS 2
+
 struct lightProp {
     glm::vec3 ambient;
     glm::vec3 diffuse;
@@ -30,6 +32,8 @@ struct lightProp {
     float constants;
     float linear;
     float quadratic;
+
+    int amount;
 
     friend std::ostream& operator<<(std::ostream& os, const lightProp& p) {
         os << "ambient: " << p.ambient.x << " " << p.ambient.y << " " << p.ambient.z;
@@ -60,26 +64,27 @@ void setupMaterials(Shader shader, materialsProp materials);
 
 const unsigned int SCR_WIDTH = 1920;
 const unsigned int SCR_HEIGHT = 1080;
+int numberOfPointLights = NR_POINT_LIGHTS;
 
 glm::vec3 camPos = glm::vec3(1.0f, 0.0f, 10.0f);
 Camera camera(camPos);
 
-glm::vec3 globalAmbient = glm::vec3(0.05);
+glm::vec3 globalAmbient = glm::vec3(0.005);
+glm::vec3 pointLightColor = glm::vec3(1.9f, 0.0f, 0.0f);
 
 // Propierties
 float lightSize = 1.0;
 
 glm::vec3 lightPos = glm::vec3(8.0f, 15.3f, 15.0f);
 glm::vec3 lightDir = glm::vec3(-0.2f, -1.0f, -0.3f);
-glm::vec3 lightColor = globalAmbient;
-
+glm::vec3 lightColor = pointLightColor;
 
 
 glm::vec3 pointLightPositions[] = {
-        glm::vec3(0.0f,  0.5f,  20.0f),
-        glm::vec3(20.5f, 0.5f, -4.0f),
-        glm::vec3(-4.0f,  0.5f, -12.0f),
-        glm::vec3(-20.0f,  0.5f, -3.0f)
+        glm::vec3(20.0f,  0.0f,  0.0f),
+        glm::vec3(20.5f, 0.0f, -10.0f),
+        /*glm::vec3(-4.0f,  0.0f, -12.0f),
+        glm::vec3(-20.0f,  0.0f, -3.0f)*/
 };
 
 float cubeSize = 2.5f;
@@ -119,7 +124,12 @@ int main()
     }
 
     glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);  
+    glDepthFunc(GL_LESS);
+
+    glEnable(GL_STENCIL_TEST);
+    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+
+    // glDepthMask(GL_FALSE);
 
     stbi_set_flip_vertically_on_load(true);
 
@@ -207,6 +217,7 @@ int main()
     Shader cubesShader("shaders/cube.vs", "shaders/cube.fs");
     Shader floorShader("shaders/plane.vs", "shaders/plane.fs");
     Shader lightShader("shaders/light.vs", "shaders/light.fs");
+    Shader singleColorShader("shaders/bordercolor.vs", "shaders/bordercolor.fs");
 
     unsigned int cubeVAO, cubeVBO;
     glGenVertexArrays(1, &cubeVAO);
@@ -277,11 +288,11 @@ int main()
         deltaTime = currentFrame - lastFrame;
 
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-        ImGui_ImplOpenGL3_NewFrame();
+        /*ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
+        ImGui::NewFrame();*/
 
         // set uniforms
         glm::mat4 model = glm::mat4(1.0f);
@@ -300,6 +311,8 @@ int main()
         initView(cubesShader, view, projection);
         setupMaterials(cubesShader, cubesMaterials);
         
+        singleColorShader.use();
+        initView(singleColorShader, view, projection);
 
         lightShader.use();
         lightShader.setMat4("view", view);
@@ -307,8 +320,9 @@ int main()
         lightShader.setVec3("lightColor", lightColor);
 
         // lights things
+        glBindVertexArray(cubeVAO);
 
-        for (int i =0; i < 4; i++) 
+        for (int i =0 ; i < numberOfPointLights; i++)
         {
             model = glm::mat4(1.0f);
             model = glm::translate(model, pointLightPositions[i]);
@@ -318,6 +332,7 @@ int main()
         }
 
         // plane things
+        glStencilMask(0x00); // Make sure we dont update the stencil buffer while drawing
         floorShader.use();
         glBindVertexArray(floorVAO);
         glActiveTexture(GL_TEXTURE0);
@@ -335,6 +350,9 @@ int main()
         glDrawArrays(GL_TRIANGLES, 0, 10);
         glBindVertexArray(0);
 
+        glStencilFunc(GL_ALWAYS, 1, 0xFF); // all fragments should pass the stencil test
+        glStencilMask(0xFF); // enable writing to the stencil buffer
+
         // cubes things
         cubesShader.use();
         glBindVertexArray(cubeVAO);
@@ -345,28 +363,54 @@ int main()
 
         setupLights(cubesShader);
 
-        /*for (unsigned int i = 0; i < 9; i++) {
-            glm::mat4 cubeModel = glm::mat4(1.0f);
-            cubeModel = glm::translate(cubeModel, cubePositions[i]);
-            cubeModel = glm::scale(cubeModel, glm::vec3(cubeSize, cubeSize, cubeSize));
-            cubesShader.setMat4("model", cubeModel);
-
-            glDrawArrays(GL_TRIANGLES, 0, 36);
-        }*/
-         
+ 
         glm::mat4 cubeModel = glm::mat4(1.0f);
-        cubeModel = glm::translate(cubeModel, glm::vec3(0.0f, -1.5, 0.0f));
-        cubeModel = glm::scale(cubeModel, glm::vec3(cubeSize, cubeSize, cubeSize));
+        cubeModel = glm::translate(cubeModel, glm::vec3(-1.0f, 0.0f, -1.0f));
+        // cubeModel = glm::scale(cubeModel, glm::vec3(cubeSize, cubeSize, cubeSize));
         cubesShader.setMat4("model", cubeModel);
 
         glDrawArrays(GL_TRIANGLES, 0, 36);
+
+        cubeModel = glm::translate(cubeModel, glm::vec3(2.0f, 0.0f, 0.0f));
+        // cubeModel = glm::scale(cubeModel, glm::vec3(cubeSize, cubeSize, cubeSize));
+        cubesShader.setMat4("model", cubeModel);
+
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+
+        glStencilFunc(GL_NOTEQUAL, 1, 0xFF); // all fragments should pass the stencil test
+        glStencilMask(0x00); // dont draw stuff
+        glDisable(GL_DEPTH_TEST); // disable 
+
+        singleColorShader.use();
+
+        glBindVertexArray(cubeVAO);
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, cubesTexture);
+        glActiveTexture(GL_TEXTURE3);
+        glBindTexture(GL_TEXTURE_2D, cubeSpecular);
+        
+        glm::mat4 cubeWithBorder = glm::mat4(1.0f);
+        float scaling = 1.1f;
+        cubeWithBorder = glm::translate(cubeWithBorder, glm::vec3(-1.0f, 0, -1.0f));
+        cubeWithBorder = glm::scale(cubeWithBorder, glm::vec3(scaling, scaling, scaling));
+        singleColorShader.setMat4("model", cubeWithBorder);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+
+        cubeWithBorder = glm::translate(cubeWithBorder, glm::vec3(2.0f, 0, 0.0f));
+        cubeWithBorder = glm::scale(cubeWithBorder, glm::vec3(scaling, scaling, scaling));
+        singleColorShader.setMat4("model", cubeWithBorder);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+        glBindVertexArray(0);
+        glStencilMask(0xFF);
+        glStencilFunc(GL_ALWAYS, 1, 0xFF);
+        glEnable(GL_DEPTH_TEST);
     
-        ImGui::Begin("Esto se supone que es una ventana con imgui");
+        /*ImGui::Begin("Esto se supone que es una ventana con imgui");
         ImGui::Text("Hola mundo de la programcion grafica.");
         ImGui::End();
 
         ImGui::Render();
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());*/
         
         lastFrame = currentFrame;
         glfwSwapBuffers(window);
@@ -442,6 +486,7 @@ void pointlight(Shader& shader, const lightProp& light, int& i)
     shader.setFloat("pointLights[" + index + "].constant", light.constants);
     shader.setFloat("pointLights[" + index + "].linear", light.linear);
     shader.setFloat("pointLights[" + index + "].quadratic", light.quadratic);
+    shader.setInt("pointLights.amount", light.amount);
    
 }
 
@@ -453,10 +498,10 @@ void setupLights(Shader& shader)
     directionalLight(shader, directionalLights);
     spotLight(shader, spotLights);
 
-    /*for (int i = 0; i < 4; i++)
+    for (int i = 0; i < numberOfPointLights; i++)
     {
         pointlight(shader, pointLights, i);
-    }*/
+    }
 }
 
 void setUniforms()
@@ -464,10 +509,9 @@ void setUniforms()
     directionalLights.ambient = globalAmbient;
     directionalLights.diffuse = glm::vec3(0.4f);
     directionalLights.specular = glm::vec3(0.5f);
-    directionalLights.position = camera.Position;
     directionalLights.direction = lightDir;
     
-    pointLights.ambient = glm::vec3(1.0f, 0.0f, 0.0f);
+    pointLights.ambient = pointLightColor;
     pointLights.diffuse = glm::vec3(1.0f);
     pointLights.specular = glm::vec3(1.0f);
     //pointLights.position = camera.Position;
@@ -478,10 +522,11 @@ void setUniforms()
     pointLights.constants = 1.0f;
     pointLights.linear = 0.09f;
     pointLights.quadratic = 0.032f;
+    pointLights.amount = numberOfPointLights;
 
     spotLights.exampleColor = glm::vec3(0.0f, 0.0, 1.0f); // Esto fue para testear se puede borrar sin problemas (creo)
 
-    spotLights.ambient = globalAmbient;
+    spotLights.ambient = glm::vec3(1.0f);
     spotLights.diffuse = glm::vec3(1.0f);
     spotLights.specular = glm::vec3(1.0f);
     spotLights.position = camera.Position;
@@ -494,7 +539,7 @@ void setUniforms()
 
     floorMaterials.diffuse = 0;
     floorMaterials.specular = 0;
-    floorMaterials.shinness = 32.0f;
+    floorMaterials.shinness = 64.0f;
 
     cubesMaterials.diffuse = 2;
     cubesMaterials.specular = 3;

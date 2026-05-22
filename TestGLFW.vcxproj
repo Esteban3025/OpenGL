@@ -285,6 +285,8 @@
     <None Include="OpenGL\includes\assimp\SmoothingGroups.inl" />
     <None Include="OpenGL\includes\assimp\vector2.inl" />
     <None Include="OpenGL\includes\assimp\vector3.inl" />
+    <None Include="shaders\bordercolor.fs" />
+    <None Include="shaders\bordercolor.vs" />
     <None Include="shaders\cube.fs" />
     <None Include="shaders\cube.vs" />
     <None Include="shaders\light.fs" />
