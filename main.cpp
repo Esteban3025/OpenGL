@@ -71,8 +71,8 @@ int numberOfPointLights = NR_POINT_LIGHTS;
 glm::vec3 camPos = glm::vec3(1.0f, 0.0f, 10.0f);
 Camera camera(camPos);
 
-glm::vec3 globalAmbient = glm::vec3(0.005);
-glm::vec3 pointLightColor = glm::vec3(1.9f, 0.0f, 0.0f);
+glm::vec3 globalAmbient = glm::vec3(0.003);
+glm::vec3 pointLightColor = glm::vec3(0.3f, 0.0f, 0.0f);
 
 // Propierties
 float lightSize = 1.0;
@@ -222,8 +222,8 @@ int main()
     Shader singleColorShader("shaders/bordercolor.vs", "shaders/bordercolor.fs");
     Shader animationModelShader("shaders/model.vs", "shaders/model.fs");
 
-    Model ourModel("textures/vampire/dancing_vampire.dae");
-    Animation danceAnimation("textures/vampire/dancing_vampire.dae", &ourModel);
+    Model ourModel("textures/swing/swing_dancing.dae");
+    Animation danceAnimation("textures/swing/swing_dancing.dae", &ourModel);
     Animator animator(&danceAnimation);
 
     unsigned int cubeVAO, cubeVBO;
@@ -381,14 +381,14 @@ int main()
 
  
         glm::mat4 cubeModel = glm::mat4(1.0f);
-        cubeModel = glm::translate(cubeModel, glm::vec3(-1.0f, 0.0f, -1.0f));
+        cubeModel = glm::translate(cubeModel, glm::vec3(-10.0f, 0.0f, -1.0f));
         // cubeModel = glm::scale(cubeModel, glm::vec3(cubeSize, cubeSize, cubeSize));
         cubesShader.setMat4("model", cubeModel);
 
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
         cubeModel = glm::mat4(1.0f);
-        cubeModel = glm::translate(cubeModel, glm::vec3(2.0f, 0.0f, 0.0f));
+        cubeModel = glm::translate(cubeModel, glm::vec3(10.0f, 0.0f, 0.0f));
         // cubeModel = glm::scale(cubeModel, glm::vec3(cubeSize, cubeSize, cubeSize));
         cubesShader.setMat4("model", cubeModel);
 
@@ -408,13 +408,13 @@ int main()
         
         glm::mat4 cubeWithBorder = glm::mat4(1.0f);
         float scaling = 1.1f;
-        cubeWithBorder = glm::translate(cubeWithBorder, glm::vec3(-1.0f, 0, -1.0f));
+        cubeWithBorder = glm::translate(cubeWithBorder, glm::vec3(-10.0f, 0, -1.0f));
         cubeWithBorder = glm::scale(cubeWithBorder, glm::vec3(scaling, scaling, scaling));
         singleColorShader.setMat4("model", cubeWithBorder);
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
         cubeWithBorder = glm::mat4(1.0f);
-        cubeWithBorder = glm::translate(cubeWithBorder, glm::vec3(2.0f, 0.0f, 0.0f));
+        cubeWithBorder = glm::translate(cubeWithBorder, glm::vec3(10.0f, 0.0f, 0.0f));
         cubeWithBorder = glm::scale(cubeWithBorder, glm::vec3(scaling, scaling, scaling));
         singleColorShader.setMat4("model", cubeWithBorder);
         glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -431,6 +431,7 @@ int main()
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());*/
         
         animationModelShader.use();
+        setupLights(animationModelShader);
         auto transforms = animator.GetFinalBoneMatrices();
         for (int i = 0; i < transforms.size(); ++i)
             animationModelShader.setMat4("finalBonesMatrices[" + std::to_string(i) + "]", transforms[i]);
@@ -579,7 +580,7 @@ void setUniforms()
 void processInput(GLFWwindow* window, ImGuiIO& io)
 {
     const float cameraSpeed = 2.5f * deltaTime;
-    const float movementSpeed = sin(0.009f);
+    const float movementSpeed = sin(0.08f);
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
     {
@@ -633,39 +634,39 @@ void processInput(GLFWwindow* window, ImGuiIO& io)
 
     if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
     {
-        lightPos.z -= movementSpeed;
+        pointLightPositions[0].z -= movementSpeed;
         camera.showVec3("Light Position: ", lightPos);
     }
     if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
     {
-        lightPos.z += movementSpeed;
+        pointLightPositions[0].z += movementSpeed;
         camera.showVec3("Light Position: ", lightPos);
     }
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
     {
-        lightPos.x += movementSpeed;
+        pointLightPositions[0].x += movementSpeed;
         camera.showVec3("Light Position: ", lightPos);
     }
     if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
     {
-        lightPos.x -= movementSpeed;
+        pointLightPositions[0].x -= movementSpeed;
         camera.showVec3("Light Position: ", lightPos);
     }
     if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS)
     {
-        lightPos.y -= movementSpeed;
+        pointLightPositions[0].y -= movementSpeed;
         camera.showVec3("Light Position: ", lightPos);
     }
     if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS)
     {
-        lightPos.y += movementSpeed;
+        pointLightPositions[0].y += movementSpeed;
         camera.showVec3("Light Position: ", lightPos);
     }
     if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS)
     {
-        lightPos.x = 0.0f;
-        lightPos.z = 0.0f;
-        lightPos.y = 0.0f;
+        pointLightPositions[0].x = 0.0f;
+        pointLightPositions[0].z = 0.0f;
+        pointLightPositions[0].y = 0.0f;
         camera.showVec3("Light Position: ", lightPos);
     }
 }
