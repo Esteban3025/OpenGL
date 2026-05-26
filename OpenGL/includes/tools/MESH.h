@@ -21,7 +21,6 @@ struct Vertex {
     glm::vec3 Normal;
     // texCoords
     glm::vec2 TexCoords;
-    vector<float> vertices;
     // tangent
     glm::vec3 Tangent;
     // bitangent

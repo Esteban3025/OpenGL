@@ -374,6 +374,21 @@
     <ClInclude Include="OpenGL\includes\imgui_impl_opengl3_loader.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="OpenGL\includes\tools\useful\assimp_glm_helpers.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="OpenGL\includes\tools\useful\animdata.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="OpenGL\includes\tools\BONE.H">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="OpenGL\includes\tools\ANIMATION.H">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="OpenGL\includes\tools\ANIMATOR.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Library Include="OpenGL\lib\glfw3.lib" />
@@ -442,6 +457,7 @@
     <None Include="shaders\plane.fs" />
     <None Include="shaders\bordercolor.vs" />
     <None Include="shaders\bordercolor.fs" />
+    <None Include="textures\vampire\dancing_vampire.dae" />
   </ItemGroup>
   <ItemGroup>
     <Font Include="fonts\ARIAL.TTF" />

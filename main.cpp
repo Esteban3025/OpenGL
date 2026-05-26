@@ -12,6 +12,8 @@
 #include <tools/shader.h>
 #include <tools/camera.h>
 #include <tools/model.h>
+#include <tools/animation.h>
+#include <tools/animator.h>
 
 #include <iostream>
 #include <string>
@@ -218,6 +220,11 @@ int main()
     Shader floorShader("shaders/plane.vs", "shaders/plane.fs");
     Shader lightShader("shaders/light.vs", "shaders/light.fs");
     Shader singleColorShader("shaders/bordercolor.vs", "shaders/bordercolor.fs");
+    Shader animationModelShader("shaders/model.vs", "shaders/model.fs");
+
+    Model ourModel("textures/vampire/dancing_vampire.dae");
+    Animation danceAnimation("textures/vampire/dancing_vampire.dae", &ourModel);
+    Animator animator(&danceAnimation);
 
     unsigned int cubeVAO, cubeVBO;
     glGenVertexArrays(1, &cubeVAO);
@@ -282,14 +289,17 @@ int main()
 
     while (!glfwWindowShouldClose(window))
     {
-        processInput(window, io);
-
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
+
+        processInput(window, io);
+        animator.UpdateAnimation(deltaTime);
 
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
+       
         /*ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();*/
@@ -313,6 +323,9 @@ int main()
         
         singleColorShader.use();
         initView(singleColorShader, view, projection);
+
+        animationModelShader.use();
+        initView(animationModelShader, view, projection);
 
         lightShader.use();
         lightShader.setMat4("view", view);
@@ -350,6 +363,9 @@ int main()
         glDrawArrays(GL_TRIANGLES, 0, 10);
         glBindVertexArray(0);
 
+
+       
+
         glStencilFunc(GL_ALWAYS, 1, 0xFF); // all fragments should pass the stencil test
         glStencilMask(0xFF); // enable writing to the stencil buffer
 
@@ -371,6 +387,7 @@ int main()
 
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
+        cubeModel = glm::mat4(1.0f);
         cubeModel = glm::translate(cubeModel, glm::vec3(2.0f, 0.0f, 0.0f));
         // cubeModel = glm::scale(cubeModel, glm::vec3(cubeSize, cubeSize, cubeSize));
         cubesShader.setMat4("model", cubeModel);
@@ -396,7 +413,8 @@ int main()
         singleColorShader.setMat4("model", cubeWithBorder);
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
-        cubeWithBorder = glm::translate(cubeWithBorder, glm::vec3(2.0f, 0, 0.0f));
+        cubeWithBorder = glm::mat4(1.0f);
+        cubeWithBorder = glm::translate(cubeWithBorder, glm::vec3(2.0f, 0.0f, 0.0f));
         cubeWithBorder = glm::scale(cubeWithBorder, glm::vec3(scaling, scaling, scaling));
         singleColorShader.setMat4("model", cubeWithBorder);
         glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -412,7 +430,19 @@ int main()
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());*/
         
-        lastFrame = currentFrame;
+        animationModelShader.use();
+        auto transforms = animator.GetFinalBoneMatrices();
+        for (int i = 0; i < transforms.size(); ++i)
+            animationModelShader.setMat4("finalBonesMatrices[" + std::to_string(i) + "]", transforms[i]);
+
+        glm::mat4 animModel = glm::mat4(1.0f);
+        // translate it down so it's at the center of the scene
+        animModel = glm::translate(animModel, glm::vec3(0.0f, -3.0f, -5.5f));
+        // it's a bit too big for our scene, so scale it down
+        animModel = glm::scale(animModel, glm::vec3(2.3f, 2.3f, 2.3f));
+        animationModelShader.setMat4("model", animModel);
+        ourModel.Draw(animationModelShader);
+        
         glfwSwapBuffers(window);
         glfwPollEvents();
     }

@@ -249,6 +249,9 @@
     <ClInclude Include="OpenGL\includes\imstb_rectpack.h" />
     <ClInclude Include="OpenGL\includes\imstb_textedit.h" />
     <ClInclude Include="OpenGL\includes\imstb_truetype.h" />
+    <ClInclude Include="OpenGL\includes\tools\ANIMATION.H" />
+    <ClInclude Include="OpenGL\includes\tools\ANIMATOR.h" />
+    <ClInclude Include="OpenGL\includes\tools\BONE.H" />
     <ClInclude Include="OpenGL\includes\tools\CAMERA.h" />
     <ClInclude Include="OpenGL\includes\ft2build.h" />
     <ClInclude Include="OpenGL\includes\glad\glad.h" />
@@ -259,6 +262,8 @@
     <ClInclude Include="OpenGL\includes\tools\SHADER.h" />
     <ClInclude Include="OpenGL\includes\stb_image.h" />
     <ClInclude Include="OpenGL\includes\tools\TEXTURES.h" />
+    <ClInclude Include="OpenGL\includes\tools\useful\animdata.h" />
+    <ClInclude Include="OpenGL\includes\tools\useful\assimp_glm_helpers.h" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="OpenGL\lib\assimp-vc143-mtd.lib" />
@@ -295,6 +300,7 @@
     <None Include="shaders\model.vs" />
     <None Include="shaders\plane.fs" />
     <None Include="shaders\plane.vs" />
+    <None Include="textures\vampire\dancing_vampire.dae" />
   </ItemGroup>
   <ItemGroup>
     <Font Include="fonts\ARIAL.TTF" />
